@@ -1,8 +1,13 @@
-## This will be the final clean overview of assignment with a section like this:
+## This will be the final clean overview of assignment with at least a run cmd section.
 
-Run with:
+## Install requirements using:
+```bash
+pip install -r requirements.txt
 ```
-cmd
+
+## Run script using:
+```bash
+py main.py
 ```
 
 

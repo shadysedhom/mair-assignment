@@ -13,13 +13,13 @@ dialog_act [space] utterance_content
 dialog_act [space] utterance_content  
 ... <br /> <br />
 
-### We will split the data into:
+### We will split the data into ✅:
 1. Train set (75%)
 2. Validation set for tuning (10%)
 3. Test set (15%)
 
 ### Explicit instructions
-- ALL Data needs to be converted to lowercase!
+- ALL Data needs to be converted to lowercase! ✅
 - ALL user input also needs to be converted to lowercase!
 - If utterance is labeled with 2 different dialog acts --> Only use first dialog act!
 
@@ -34,14 +34,20 @@ Offer a prompt to enter a new utterance (via cmd line) and classify this utteran
 ## Machine learning (we will train 3 classifiers)
 Possible classifiers include (but are not limited to) Decision Trees, Logistic Regression, or a Feed Forward neural network.  
 
-We need to use a bag of words representation as input for a classifier. Depending on the classifier and setup of your ML pipeline you may need to keep an integer (for example 0) for out-of-vocab words (e.g when a test sentence is entered that contains a word which was not in the training data), assign the special integer.  
+- We need to use a bag of words representation as input for a classifier. Depending on the classifier and setup of your ML pipeline you may need to keep an integer (for example 0) for out-of-vocab words (e.g when a test sentence is entered that contains a word which was not in the training data), assign the special integer.  
 
-After training, testing, and reporting performance, the program should offer a prompt to enter a new sentence and classify this sentence, and repeat the prompt until the user exits.  
+- After training, testing, and reporting performance, the program should offer a prompt to enter a new sentence and classify this sentence, and repeat the prompt until the user exits.  
 
-- Many utterances in the dialogs are not unique (same sentence is spoken by users in different dialogs). This influences ML, because even with a train-test split the same sentence may appear in both the train and test set.
-
-- Create a second dataset with duplicates removed and create a second train-test split after removing the duplicates  
+- Many utterances in the dialogs are not unique (same sentence is spoken by users in different dialogs). This influences ML, because even with a train-test split the same sentence may appear in both the train and test set. Create a second dataset with duplicates removed and create a second train-test split after removing the duplicates ✅ 
 
 - Build and evaluate 2 different variants of each model, one with the original data and split, one with the deduplicated data and split.  
 
 - Discuss the differences in performance between each pair of variant models in the report.
+
+## Evaluation
+Do at least the following:
+
+- Quantitative evaluation: Evaluate your system based on one or more evaluation metrics. Choose and motivate which metrics you use.  
+- Error analysis: Are there specific dialog acts that are more difficult to classify? Are there particular utterances that are hard to classify (for all systems)? And why? Note: this analysis is about real utterances from the dataset.  
+- Difficult cases: Come up with two types of ‘difficult instances’, for example utterances that are not fluent (e.g. due to speech recognition issues) or the presence of negation (I don’t want an expensive restaurant). For each case, create test instances and evaluate how your systems perform on these cases. Note: this analysis is about sentences that you write yourself with the goal to have the system produce an incorrect result.  
+- System comparison: How do the systems compare against the baselines, and against each other? What is the influence of deduplication? Which one would you choose for your dialog system?  

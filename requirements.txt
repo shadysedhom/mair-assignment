@@ -1,5 +1,2 @@
-package names go here like:
-
-pandas (EXAMPLE)
-matplotlib (EXAMPLE)
-numpy (EXAMPLE)
+pandas
+sklearn
