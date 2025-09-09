@@ -1,7 +1,5 @@
 package names go here like:
 
-pandas
-matplotlib
-numpy
-
-for example
+pandas (EXAMPLE)
+matplotlib (EXAMPLE)
+numpy (EXAMPLE)
