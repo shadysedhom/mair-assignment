@@ -83,12 +83,12 @@ if __name__ == "__main__":
     #* ---- and repeat the prompt until the user exits.  
     #* !! Convert ALL user input to lowercase !!
 
-    #* --------- TODO: Build Classifier 4 (dj) -------- Make 2 versions of your model:
+    #* --------- TODO: Build Classifier 4 (Dirk-Jan) -------- Make 2 versions of your model:
     #* --------- one with the original data and split, one with the deduplicated data and split.   
     #* -- Use bag of words representation and handle out of vocabulary words --
 
-    acc_dedup = evaluate_tree(X_train_dedup, y_train_dedup, X_val_dedup, y_val_dedup, "deduplicated")
-    acc_orig  = evaluate_tree(X_train_orig, y_train_orig, X_val_orig, y_val_orig, "original")
+    evaluate_tree(X_train_dedup, y_train_dedup, X_val_dedup, y_val_dedup, "deduplicated")
+    evaluate_tree(X_train_orig, y_train_orig, X_val_orig, y_val_orig, "original")
 
     #* ---- TODO: After training, testing, and reporting performance, 
     #* ---- the program should offer a prompt to enter a new sentence and classify this sentence,

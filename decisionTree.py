@@ -16,4 +16,3 @@ def evaluate_tree(X_train, y_train, X_val, y_val, label):
     accuracy = accuracy_score(y_val, y_pred)
     
     print(f"Accuracy decision tree classifier ({label}): {accuracy:.4f}")
-    return accuracy
