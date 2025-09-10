@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import BaselineSystems as baseline
 from sklearn.model_selection import train_test_split
 
 def load_and_preprocess_data(filepath):
@@ -103,9 +104,13 @@ if __name__ == "__main__":
 
 #* ---------- TODO: MAJORITY VOTE (NAIVE) BASELINE ------------ just predict the most common label everytime
 
+resultBaseLineMajority = baseline.calculate_majority_label_accuracy(df_with_duplicates.values.tolist())
+print("Majority Baseline Accuracy:", resultBaseLineMajority)
+
 #* ---------- TODO: MANUAL RULE BASED BASELINE -------- iterate till it scores over 80% (no stats/ml just manual rules)
 
-
+resultBaseLine = baseline.calculate_accuracy(df_without_duplicates.values.tolist())
+print("Rule-Based Accuracy:", resultBaseLine)
 
 
 
