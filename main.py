@@ -2,6 +2,10 @@ import os
 import pandas as pd
 import BaselineSystems as baseline
 from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.pipeline import Pipeline
 
 def load_and_preprocess_data(filepath):
     """
@@ -104,13 +108,13 @@ if __name__ == "__main__":
 
 #* ---------- TODO: MAJORITY VOTE (NAIVE) BASELINE ------------ just predict the most common label everytime
 
-resultBaseLineMajority = baseline.calculate_majority_label_accuracy(df_with_duplicates.values.tolist())
-print("Majority Baseline Accuracy:", resultBaseLineMajority)
+    resultBaseLineMajority = baseline.calculate_majority_label_accuracy(df_with_duplicates.values.tolist())
+    print("Majority Baseline Accuracy:", resultBaseLineMajority)
 
 #* ---------- TODO: MANUAL RULE BASED BASELINE -------- iterate till it scores over 80% (no stats/ml just manual rules)
 
-resultBaseLine = baseline.calculate_accuracy(df_without_duplicates.values.tolist())
-print("Rule-Based Accuracy:", resultBaseLine)
+    resultBaseLine = baseline.calculate_accuracy(df_without_duplicates.values.tolist())
+    print("Rule-Based Accuracy:", resultBaseLine)
 
 
 
@@ -131,9 +135,35 @@ print("Rule-Based Accuracy:", resultBaseLine)
 #* --------- one with the original data and split, one with the deduplicated data and split.   
 #* -- Use bag of words representation and handle out of vocabulary words --
 
+#* --------- TODO: Build Classifier 4 (dj) -------- Make 2 versions of your model:
+#* --------- one with the original data and split, one with the deduplicated data and split.   
+#* -- Use bag of words representation and handle out of vocabulary words --
+
+# Convert text (sentences) into TF-IDF vectors
+# https://machinelearningmastery.com/making-sense-of-text-with-decision-trees/ 
 
 
+tfidf_tree_dedup = Pipeline([
+    ("tfidf", TfidfVectorizer()),
+    ("clf", DecisionTreeClassifier(random_state=42))
+])
 
+tfidf_tree_dedup.fit(X_train_dedup, y_train_dedup)
+y_pred_dedup = tfidf_tree_dedup.predict(X_val_dedup)
+
+accuracy_dedup = accuracy_score(y_val_dedup, y_pred_dedup)
+print(f'Accuracy decision tree classifier (deduplicated): {accuracy_dedup:.4f}')
+
+tfidf_tree_orig = Pipeline([
+    ("tfidf", TfidfVectorizer()),
+    ("clf", DecisionTreeClassifier(random_state=42))
+])
+
+tfidf_tree_orig.fit(X_train_orig, y_train_orig)
+y_pred_orig = tfidf_tree_orig.predict(X_val_orig)
+
+accuracy_orig = accuracy_score(y_val_orig, y_pred_orig)
+print(f'Accuracy decision tree classifier (original): {accuracy_orig:.4f}')
 
 #* ---- TODO: After training, testing, and reporting performance, 
 #* ---- the program should offer a prompt to enter a new sentence and classify this sentence,
