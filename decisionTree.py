@@ -42,3 +42,5 @@ def evaluate_tree(X_train, y_train, X_val, y_val, X_test, y_test, label):
     
     print(f"Accuracy decision tree classifier ({label}): {accuracy:.4f}")
     print(classification_report(y_test, y_pred, zero_division=0))
+
+    return best_model

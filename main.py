@@ -4,6 +4,7 @@ import BaselineSystems as baseline
 from data import load_and_preprocess_data, split_data
 from svm import run_svm_optimization
 from decisionTree import evaluate_tree
+from sklearn.feature_extraction.text import CountVectorizer
 
 
 if __name__ == "__main__":
@@ -32,13 +33,23 @@ if __name__ == "__main__":
 
     #* ---------- TODO: MAJORITY VOTE (NAIVE) BASELINE ------------ just predict the most common label everytime
 
+    print("\n" + "-"*50)
+    print("Baseline")
+    print("-"*50)
+
     resultBaseLineMajority = baseline.calculate_majority_label_accuracy(df_with_duplicates.values.tolist())
-    print("Majority Baseline Accuracy:", resultBaseLineMajority)
+    print("Majority Baseline Accuracy (duplicated):", resultBaseLineMajority)
+
+    resultBaseLineMajority = baseline.calculate_majority_label_accuracy(df_without_duplicates.values.tolist())
+    print("Majority Baseline Accuracy (deduplicated):", resultBaseLineMajority)
 
 #* ---------- TODO: MANUAL RULE BASED BASELINE -------- iterate till it scores over 80% (no stats/ml just manual rules)
 
+    resultBaseLine = baseline.calculate_accuracy(df_with_duplicates.values.tolist())
+    print("Rule-Based Accuracy (duplicated):", resultBaseLine)
+
     resultBaseLine = baseline.calculate_accuracy(df_without_duplicates.values.tolist())
-    print("Rule-Based Accuracy:", resultBaseLine)
+    print("Rule-Based Accuracy (deduplicated):", resultBaseLine)
 
 
 
@@ -61,7 +72,7 @@ if __name__ == "__main__":
     print("-"*50)
 
     # Call the function for the original data
-    run_svm_optimization(
+    svm = run_svm_optimization(
         X_train_orig, X_val_orig, X_test_orig,
         y_train_orig, y_val_orig, y_test_orig,
         "original"
@@ -87,8 +98,13 @@ if __name__ == "__main__":
     #* --------- one with the original data and split, one with the deduplicated data and split.   
     #* -- Use bag of words representation and handle out of vocabulary words --
 
-    evaluate_tree(X_train_dedup, y_train_dedup, X_val_dedup, y_val_dedup, X_test_dedup, y_test_dedup, "deduplicated")
+    print("Classifier 4: Decision Tree")
+    print("-"*50)
+
+    decision_tree_model = evaluate_tree(X_train_dedup, y_train_dedup, X_val_dedup, y_val_dedup, X_test_dedup, y_test_dedup, "deduplicated")
     evaluate_tree(X_train_orig, y_train_orig, X_val_orig, y_val_orig, X_test_orig, y_test_orig, "original")
+
+    print("-"*50)
 
     #* ---- TODO: After training, testing, and reporting performance, 
     #* ---- the program should offer a prompt to enter a new sentence and classify this sentence,
@@ -100,5 +116,17 @@ if __name__ == "__main__":
 
     #* ------ TODO: EVALUATION (Dirk-Jan) ---------
 
+    print("evaluation on custom test set:")
+    print("-"*50)
 
+    custom_test_set = [
+        ("phonenumer please!", "request"),
+        ("you are not wrong ", "affirm")
+    ]
+    X_test = [item[0] for item in custom_test_set]
+    y_test = [item[1] for item in custom_test_set]
 
+    y_pred_decision_tree_custom = decision_tree_model.predict(X_test)
+    print("Decision Tree (input output):", y_test, y_pred_decision_tree_custom)
+
+    print("-"*50)

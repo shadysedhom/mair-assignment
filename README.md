@@ -40,6 +40,46 @@ This will run the full pipeline, including training, testing and user interactio
 | Bram        | Classifier 1 (XXXXX) -- FILL IN WHEN DECIDED                    |
 | Lenny       | Classifier 2 (XXXXX) -- FILL IN WHEN DECIDED                    |
 | Shady       | Data Preprocessing + Classifier 3 (SVM)                         |
-| Dirk-Jan    | Baseline Systems + Evaluation                                   |
+| Dirk-Jan    | Baseline Systems +  Classifier decision tree + Evaluation       |
 
----
+## evaluation
+
+- Quantitative evaluation: Evaluate your system based on one or more evaluation metrics. Choose and motivate which metrics you use.
+
+  For the quantitative evaluation, the following evaluation metrics are used: accuracy, precision, recoll, and f1-score. These are chosen because we learned them in the past few weeks and they also provide important information about the predictions that are being made.
+
+  Accuracy shows how many of the predictions were correct, relative to the total number of predictions made. This clearly shows how a model performs overall.
+  (Accuracy = TP + TN / TP + FN +  FP + FN )
+
+  Precision is the proportion of all the model's positive classifications that are actually positive.  Precision improves as false positives decrease, thus use it when it’s very important for positive predictions to be accurate (Precision = TP / TP + FP )
+
+  Recall is the proportion of all actual positives that were classified correctly as positives.  recall improves when false negatives decrease, thus use it when false negatives are more expensive than false positives. ( Recall – TP / TP + FN )
+
+  And lastly, we use the F1-sore that keeps an harmonic balance between precision and recall. It’s needed when you care about both the FP and FN results. F1 Score=2× Precision×Recall / Precision+Recall. 
+
+  These evaluations are displayed in the console using the built-in function  ‘classification_report’ provided by the scikit-learn library.
+
+
+- Error analysis: Are there specific dialog acts that are more difficult to classify? Are there particular utterances that are hard to classify (for all systems)? And why? Note: this analysis is about real utterances from the dataset.
+
+  Yes, there are specific dialogue acts that are more difficult to classify, such as the following example: “thankyou thank you good bye”, “bye thank you so much good bye”. Between these dialogue acts its hard to predict when it will be thankyou or a bye tagg, because most sentences of these tags contain both thank and bye expression.
+
+- Difficult cases: Come up with two types of ‘difficult instances’, for example utterances that are not fluent (e.g. due to speech recognition issues) or the presence of negation (I don’t want an expensive restaurant). For each case, create test instances and evaluate how your systems perform on these cases. Note: this analysis is about sentences that you write yourself with the goal to have the system produce an incorrect result.
+
+  deny wrong -> you are not wrong (affirm)
+  request phone number -> phonenumer please! (request)
+  expected: ['request', 'affirm'] predicted: ['inform' 'inform'] with decision tree
+
+
+- System comparison: How do the systems compare against the baselines, and against each other? What is the influence of deduplication? Which one would you choose for your dialog system?
+
+  | System             | Accuracy Origin | Accuracy Deduplication | Precision Origin | Precision Deduplication | Recall Origin | Recall Deduplication |
+  |--------------------|-----------------|------------------------|------------------|-------------------------|---------------|----------------------|
+  | baseline majority  | 0.42            | 0.59                   | N/A              | N/A                     | N/A           | N/A                  |
+  | baseline rule-based| 0.90            | 0.84                   | N/A              | N/A                     | N/A           | N/A                  |
+  | SVM                | 0.99            | 0.94                   | [0.93,0.99]      | [0.78,0.94]             | [0.93,0.99]   | [0.80,0.94]          |
+  | decision tree      | 0.84            | 0.83                   | [0.36,0.79]      | [0.47,0.86]             | [0.30,0.84]   | [0.32,0.83]          |
+  | Bram Classifier 1  |                 |                        |                  |                         |               |                      |
+  | Lenny  Classifier 2|                 |                        |                  |                         |               |                      |
+
+  *precision and recall first value macro avg, second value weighted avg.
