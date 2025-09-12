@@ -1,7 +1,9 @@
 import os
+import BaselineSystems as baseline
 
 from data import load_and_preprocess_data, split_data
 from svm import run_svm_optimization
+from decisionTree import evaluate_tree
 
 
 if __name__ == "__main__":
@@ -30,9 +32,13 @@ if __name__ == "__main__":
 
     #* ---------- TODO: MAJORITY VOTE (NAIVE) BASELINE ------------ just predict the most common label everytime
 
-    #* ---------- TODO: MANUAL RULE BASED BASELINE -------- iterate till it scores over 80% (no stats/ml just manual rules)
+    resultBaseLineMajority = baseline.calculate_majority_label_accuracy(df_with_duplicates.values.tolist())
+    print("Majority Baseline Accuracy:", resultBaseLineMajority)
 
+#* ---------- TODO: MANUAL RULE BASED BASELINE -------- iterate till it scores over 80% (no stats/ml just manual rules)
 
+    resultBaseLine = baseline.calculate_accuracy(df_without_duplicates.values.tolist())
+    print("Rule-Based Accuracy:", resultBaseLine)
 
 
 
@@ -71,6 +77,18 @@ if __name__ == "__main__":
     print("-"*50)
 
 
+
+    #* ---- TODO: After training, testing, and reporting performance, 
+    #* ---- the program should offer a prompt to enter a new sentence and classify this sentence,
+    #* ---- and repeat the prompt until the user exits.  
+    #* !! Convert ALL user input to lowercase !!
+
+    #* --------- TODO: Build Classifier 4 (Dirk-Jan) -------- Make 2 versions of your model:
+    #* --------- one with the original data and split, one with the deduplicated data and split.   
+    #* -- Use bag of words representation and handle out of vocabulary words --
+
+    evaluate_tree(X_train_dedup, y_train_dedup, X_val_dedup, y_val_dedup, X_test_dedup, y_test_dedup, "deduplicated")
+    evaluate_tree(X_train_orig, y_train_orig, X_val_orig, y_val_orig, X_test_orig, y_test_orig, "original")
 
     #* ---- TODO: After training, testing, and reporting performance, 
     #* ---- the program should offer a prompt to enter a new sentence and classify this sentence,
