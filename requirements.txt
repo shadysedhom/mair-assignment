@@ -1,5 +1,5 @@
 pandas
 optuna
 joblib
-sklearn
-scipi
+scikit-learn
+scipy
