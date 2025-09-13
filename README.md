@@ -37,8 +37,8 @@ This will run the full pipeline, including training, testing and user interactio
 
 | Team Member | Tasks                                                           |
 |-------------|-----------------------------------------------------------------|
-| Bram        | Classifier 1 (XXXXX) -- FILL IN WHEN DECIDED                    |
-| Lenny       | Classifier 2 (XXXXX) -- FILL IN WHEN DECIDED                    |
+| Bram        | Classifier 1 (Logisitc Regression)                              |
+| Lenny       | Classifier 2 (Naive Multinomial Bayes)                          |
 | Shady       | Data Preprocessing + Classifier 3 (SVM)                         |
 | Dirk-Jan    | Baseline Systems +  Classifier decision tree + Evaluation       |
 
