@@ -5,7 +5,6 @@ from data import load_and_preprocess_data, split_data
 from svm import run_svm_optimization
 from logistic_regression import run_logreg_optimization
 from decisionTree import evaluate_tree
-from sklearn.feature_extraction.text import CountVectorizer
 
 
 if __name__ == "__main__":
