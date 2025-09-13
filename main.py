@@ -2,6 +2,7 @@ import os
 
 from data import load_and_preprocess_data, split_data
 from svm import run_svm_optimization
+from logistic_regression import run_logreg_optimization
 
 
 if __name__ == "__main__":
@@ -40,7 +41,25 @@ if __name__ == "__main__":
     #* --------- TODO: Build Classifier 1 (Bram) --------- Make 2 versions of your model:
     #* --------- one with the original data and split, one with the deduplicated data and split.   
     #* -- Use bag of words representation and handle out of vocabulary words --
+    print("\n" + "-"*50)
+    print("Classifier 2: Logistic Regression")
+    print("-"*50)
 
+    # Run with original data
+    run_logreg_optimization(
+        X_train_orig, X_val_orig, X_test_orig,
+        y_train_orig, y_val_orig, y_test_orig,
+        "original"
+    )
+
+    # Run with deduplicated data
+    run_logreg_optimization(
+        X_train_dedup, X_val_dedup, X_test_dedup,
+        y_train_dedup, y_val_dedup, y_test_dedup,
+        "deduplicated"
+    )
+
+    print("-"*50)
 
 
     #* --------- TODO: Build Classifier 2 (Lenny) -------- Make 2 versions of your model:
