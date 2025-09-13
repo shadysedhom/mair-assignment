@@ -1,6 +1,6 @@
 import os
-import BaselineSystems as baseline
 
+import BaselineSystems as baseline
 from data import load_and_preprocess_data, split_data
 from svm import run_svm_optimization
 from decisionTree import evaluate_tree
@@ -33,9 +33,7 @@ if __name__ == "__main__":
 
     #* ---------- TODO: MAJORITY VOTE (NAIVE) BASELINE ------------ just predict the most common label everytime
 
-    print("\n" + "-"*50)
-    print("Baseline")
-    print("-"*50)
+    print("\n" + "-"*50 + "\nBaselines\n" + "-"*50)
 
     resultBaseLineMajority = baseline.calculate_majority_label_accuracy(df_with_duplicates.values.tolist())
     print("Majority Baseline Accuracy (duplicated):", resultBaseLineMajority)
@@ -67,9 +65,7 @@ if __name__ == "__main__":
 
 
     #* --------- Classifier 3: Support Vector Machine (SVM) ------------
-    print("\n" + "-"*50)
-    print("Classifier 3: Support Vector Machine")
-    print("-"*50)
+    print("\n" + "-"*50 + "\nClassifier 3: Support Vector Machine\n" + "-"*50)
 
     # Call the function for the original data
     svm = run_svm_optimization(
@@ -98,8 +94,7 @@ if __name__ == "__main__":
     #* --------- one with the original data and split, one with the deduplicated data and split.   
     #* -- Use bag of words representation and handle out of vocabulary words --
 
-    print("Classifier 4: Decision Tree")
-    print("-"*50)
+    print("Classifier 4: Decision Tree\n" + "-"*50)
 
     decision_tree_model = evaluate_tree(X_train_dedup, y_train_dedup, X_val_dedup, y_val_dedup, X_test_dedup, y_test_dedup, "deduplicated")
     evaluate_tree(X_train_orig, y_train_orig, X_val_orig, y_val_orig, X_test_orig, y_test_orig, "original")
