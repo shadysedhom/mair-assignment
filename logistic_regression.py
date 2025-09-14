@@ -4,6 +4,7 @@ import optuna
 import pandas as pd
 
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, accuracy_score
 from scipy.sparse import vstack
@@ -63,24 +64,31 @@ def run_logreg_optimization(X_train, X_val, X_test, y_train, y_val, y_test, data
 
     # Retrain best model on train+val
     print("Retraining Logistic Regression with best params on combined train+val...")
-    best_logreg = LogisticRegression(
-        random_state=42,
-        max_iter=1000,
-        class_weight="balanced",
-        **study.best_params,
-        solver="liblinear" if study.best_params.get("penalty") == "l1" else "lbfgs"
-    )
 
-    X_train_val_bow = vstack([X_train_bow, X_val_bow])
+    # Create a new pipeline with a vectorizer and the best Logistic Regression model
+    pipeline = Pipeline([
+        ('vectorizer', CountVectorizer()),
+        ('classifier', LogisticRegression(
+            random_state=42,
+            max_iter=1000,
+            class_weight="balanced",
+            **study.best_params,
+            solver="liblinear" if study.best_params.get("penalty") == "l1" else "lbfgs"
+        ))
+    ])
+
+    # Combine the raw text data for final training
+    X_train_val = pd.concat([X_train, X_val])
     y_train_val = pd.concat([y_train, y_val])
 
-    best_logreg.fit(X_train_val_bow, y_train_val)
+    # Fit the entire pipeline on the combined raw text data
+    pipeline.fit(X_train_val, y_train_val)
 
     # Evaluate on test set
     print(f"Evaluating best Logistic Regression on {data_type_name} test set...")
-    y_pred_test = best_logreg.predict(X_test_bow)
+    y_pred_test = pipeline.predict(X_test)
     print(classification_report(y_test, y_pred_test, zero_division=0))
 
     report = classification_report(y_test, y_pred_test, zero_division=0, output_dict=True)
 
-    return best_logreg, get_stats(report)
+    return pipeline, get_stats(report)

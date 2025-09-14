@@ -1,12 +1,13 @@
 import os
 
-import BaselineSystems as baseline
 from data import load_and_preprocess_data, split_data
 from statsRetriever import SystemsOverview
-from svm import run_svm_optimization
+import BaselineSystems as baseline
 from logistic_regression import run_logreg_optimization
-from decisionTree import evaluate_tree
 from multinomialNaiveBayes import evaluate_nb
+from svm import run_svm_optimization
+from decisionTree import evaluate_tree
+from cli import start_cli
 
 
 if __name__ == "__main__":
@@ -25,7 +26,7 @@ if __name__ == "__main__":
 
     # Remove duplicates
     df_without_duplicates = df_with_duplicates.drop_duplicates(subset=['utterance'])
-    print(f"\nCreated a copy of the data without duplicates. Total rows: {df_without_duplicates.shape[0]}")
+    print(f"Created a copy of the data without duplicates. Total rows: {df_without_duplicates.shape[0]}")
 
     # Split the original data (with duplicates) ---------- Here is the data we use WITH duplicates ----------
     print("\nSplitting original data (with duplicates)...")
@@ -46,33 +47,33 @@ if __name__ == "__main__":
     print("\n" + DASHED_LINE + "\nBaselines\n" + DASHED_LINE)
 
     resultBaseLineMajority = baseline.calculate_majority_label_accuracy(df_with_duplicates.values.tolist())
-    print("Majority Baseline Accuracy (duplicated):", resultBaseLineMajority)
+    print("Majority Baseline Accuracy (duplicated):", round(resultBaseLineMajority, 3))
 
     resultBaseLineMajority = baseline.calculate_majority_label_accuracy(df_without_duplicates.values.tolist())
-    print("Majority Baseline Accuracy (deduplicated):", resultBaseLineMajority)
+    print("Majority Baseline Accuracy (deduplicated):", round(resultBaseLineMajority, 3))
 
     #* -------------       MANUAL RULE BASED BASELINE        -----------------
     # Comprised of manualy found rules
 
     resultBaseLine = baseline.calculate_accuracy(df_with_duplicates.values.tolist())
-    print("Rule-Based Accuracy (duplicated):", resultBaseLine)
+    print("\nRule-Based Accuracy (duplicated):", round(resultBaseLine, 3))
 
     resultBaseLine = baseline.calculate_accuracy(df_without_duplicates.values.tolist())
-    print("Rule-Based Accuracy (deduplicated):", resultBaseLine)
+    print("Rule-Based Accuracy (deduplicated):", round(resultBaseLine, 3))
 
 
     #* --------- Classifier 1: Logistic Regression ------------
     print("\n" + DASHED_LINE + "\nClassifier 1: Logistic Regression\n" + DASHED_LINE)
 
     # Run with original data
-    logreg, logreg_metrics_original = run_logreg_optimization(
+    logreg_original_model, logreg_metrics_original = run_logreg_optimization(
         X_train_orig, X_val_orig, X_test_orig,
         y_train_orig, y_val_orig, y_test_orig,
         "original"
     )
 
     # Run with deduplicated data
-    logreg, logreg_metrics_deduplicated = run_logreg_optimization(
+    logreg_deduplicated_model, logreg_metrics_deduplicated = run_logreg_optimization(
         X_train_dedup, X_val_dedup, X_test_dedup,
         y_train_dedup, y_val_dedup, y_test_dedup,
         "deduplicated"
@@ -80,16 +81,15 @@ if __name__ == "__main__":
 
     systems_overview.add_system_results("Logistic Regression", logreg_metrics_original, logreg_metrics_deduplicated)
 
-    #* --------- TODO: Build Classifier 2 (Lenny) -------- Make 2 versions of your model:
-    #* --------- one with the original data and split, one with the deduplicated data and split.   
-    #* -- Use bag of words representation and handle out of vocabulary words --
-
+    #* --------- Classifier 2: Multinomial Naive Bayes ------------
     print("\n" + DASHED_LINE + "\nClassifier 2: Multinomial Naive Bayes\n" + DASHED_LINE)
 
+    # On the original data
     multinomial_nb_model_original, multinomial_nb_metrics_original = evaluate_nb(
         X_train_orig, y_train_orig, X_val_orig, y_val_orig, X_test_orig, y_test_orig, "original", alpha=2, min_df=2
     )
 
+    # On the deduplicated data
     multinomial_nb_model_deduplicated, multinomial_nb_metrics_deduplicated = evaluate_nb(
         X_train_dedup, y_train_dedup, X_val_dedup, y_val_dedup, X_test_dedup, y_test_dedup, "deduplicated", alpha=2, min_df=2
     )
@@ -100,14 +100,14 @@ if __name__ == "__main__":
     print("\n" + DASHED_LINE + "\nClassifier 3: Support Vector Machine\n" + DASHED_LINE)
 
     # Call the function for the original data
-    svm, svm_metrics_original = run_svm_optimization(
+    svm_original_model, svm_metrics_original = run_svm_optimization(
         X_train_orig, X_val_orig, X_test_orig,
         y_train_orig, y_val_orig, y_test_orig,
         "original"
     )
 
     # Call the function for the deduplicated data
-    svm, svm_metrics_deduplicated = run_svm_optimization(
+    svm_deduplicated_model, svm_metrics_deduplicated = run_svm_optimization(
         X_train_dedup, X_val_dedup, X_test_dedup,
         y_train_dedup, y_val_dedup, y_test_dedup,
         "deduplicated"
@@ -122,22 +122,12 @@ if __name__ == "__main__":
     decision_tree_model_original, decision_tree_metrics_original = evaluate_tree(X_train_orig, y_train_orig, X_val_orig, y_val_orig, X_test_orig, y_test_orig, "original")
 
     # Once for deduplicated data
-    decision_tree_model, decision_tree_metrics_deduplicated = evaluate_tree(X_train_dedup, y_train_dedup, X_val_dedup, y_val_dedup, X_test_dedup, y_test_dedup, "deduplicated")
+    decision_tree_model_deduplicated, decision_tree_metrics_deduplicated = evaluate_tree(X_train_dedup, y_train_dedup, X_val_dedup, y_val_dedup, X_test_dedup, y_test_dedup, "deduplicated")
 
     systems_overview.add_system_results("Decision Tree", decision_tree_metrics_original, decision_tree_metrics_deduplicated)
 
-    #* ---- TODO: After training, testing, and reporting performance, 
-    #* ---- the program should offer a prompt to enter a new sentence and classify this sentence,
-    #* ---- and repeat the prompt until the user exits.  
-    #* !! Convert ALL user input to lowercase !!
-
-
-
-
-    #* ------ TODO: EVALUATION (Dirk-Jan) ---------
-
-    print("evaluation on custom test set:")
-    print(DASHED_LINE)
+    #* ------ Evaluation ---------
+    print("evaluation on custom test set:\n" + DASHED_LINE)
 
     custom_test_set = [
         ("phonenumer please!", "request"),
@@ -146,10 +136,20 @@ if __name__ == "__main__":
     X_test = [item[0] for item in custom_test_set]
     y_test = [item[1] for item in custom_test_set]
 
-    y_pred_decision_tree_custom = decision_tree_model.predict(X_test)
+    y_pred_decision_tree_custom = decision_tree_model_deduplicated.predict(X_test)
     print("Decision Tree (input output):", y_test, y_pred_decision_tree_custom)
 
-    print(DASHED_LINE)
-
-    print("\nFinal results summary:")
+    print("\n" + DASHED_LINE + "\nFinal results summary:")
     systems_overview.print_results_table()
+
+    #*---------------------- Interactive Classifier --------------------------
+    # Store of the trained models (on DEDUPLICATED data)
+    models = {
+        "Logistic Regression": logreg_deduplicated_model,
+        "Multinomial Naive Bayes": multinomial_nb_model_deduplicated,
+        "SVM": svm_deduplicated_model,
+        "Decision Tree": decision_tree_model_deduplicated
+    }
+
+    # Start simple CLI
+    start_cli(models)

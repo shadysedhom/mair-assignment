@@ -38,11 +38,11 @@ def load_and_preprocess_data(filepath):
     total_rows = df.shape[0]
 
     print("Total rows BEFORE handling missing values: ", total_rows)
-    print(f"Number of 'null' dialog acts: {null_count}")
+    print(f"\nNumber of 'null' dialog acts: {null_count}")
     print(f"Percentage of null dialog acts: {(null_count / total_rows) * 100:.2f}%")
     print(f"Number of 'unintelligible' utterances: {unintelligible_count}")
     print(f"Percentage of unintelligible utterances: {(unintelligible_count / total_rows) * 100:.2f}%")
-    print(f"Dropping missing values...")
+    print(f"\nDropping missing values...")
 
     # Drop rows where dialog_act is 'null' or utterance is 'unintelligible'
     df = df[df['dialog_act'] != 'null']

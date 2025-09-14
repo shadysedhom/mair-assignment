@@ -4,6 +4,7 @@ import optuna
 import pandas as pd
 
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.pipeline import Pipeline
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report, accuracy_score
 from scipy.sparse import vstack
@@ -81,20 +82,25 @@ def run_svm_optimization(X_train, X_val, X_test, y_train, y_val, y_test, data_ty
 
     # Retrain the best model on the combined training and validation set
     print("Retraining best model on combined train and validation data...")
-    best_svm = SVC(random_state=42, class_weight='balanced', **study.best_params)
-    
-    # Combine the already-transformed training and validation sparse matrices
-    X_train_val_bow = vstack([X_train_bow, X_val_bow])
+
+    # Create a new pipeline with a vectorizer and the best SVM model
+    pipeline = Pipeline([
+        ('vectorizer', CountVectorizer()),
+        ('classifier', SVC(random_state=42, class_weight='balanced', **study.best_params))
+    ])
+
+    # Combine the raw text data for final training
+    X_train_val = pd.concat([X_train, X_val])
     y_train_val = pd.concat([y_train, y_val])
 
-    # Fit best model using train+val set
-    best_svm.fit(X_train_val_bow, y_train_val)
+    # Fit the entire pipeline on the combined raw text data
+    pipeline.fit(X_train_val, y_train_val)
 
-    # Only now, evaluate the best model on the test set, using the original transformation
+    # Evaluate the pipeline on the test set
     print(f"Evaluating best model on {data_type_name} data test set...")
-    y_pred_test = best_svm.predict(X_test_bow)
+    y_pred_test = pipeline.predict(X_test)
     print(classification_report(y_test, y_pred_test, zero_division=0))
 
     report = classification_report(y_test, y_pred_test, zero_division=0, output_dict=True)
 
-    return best_svm, get_stats(report)
+    return pipeline, get_stats(report)
