@@ -26,7 +26,8 @@ This will run the full pipeline, including training, testing and user interactio
 ## File Descriptions
 
 - **`requirements.txt`**: Lists all the Python packages required to run this project.
-- **`main.py`**: The main entry point for the project. It orchestrates the entire workflow: loading and splitting the data, and calling the different classifier implementations.
+- **`main.py`**: The main entry point for the project. It orchestrates the entire workflow of data loading, model training, and launching the interactive command-line interface.
+- **`cli.py`**: Defines the `start_cli` function, which provides an interactive prompt for users to classify their own sentences using the trained models.
 - **`data.py`**: Contains functions related to data loading and preparation.
   - `load_and_preprocess_data()`: Loads the raw `dialog_acts.dat` file, cleans the data by handling utterances which were fully unintelligible and rows with null labels, and converts it to a pandas DataFrame.
   - `split_data()`: Splits the DataFrame into training (75%), validation (10%), and test sets (15%).
@@ -39,10 +40,10 @@ This will run the full pipeline, including training, testing and user interactio
 |-------------|-----------------------------------------------------------------|
 | Bram        | Classifier 1 (Logistic Regression)                              |
 | Lenny       | Classifier 2 (Naive Multinomial Bayes)                          |
-| Shady       | Data Preprocessing + Classifier 3 (SVM)                         |
+| Shady       | Data Preprocessing + Classifier 3 (SVM) + CLI                   |
 | Dirk-Jan    | Baseline Systems +  Classifier decision tree + Evaluation       |
 
-## evaluation
+## Evaluation
 
 - Quantitative evaluation: Evaluate your system based on one or more evaluation metrics. Choose and motivate which metrics you use.
 
