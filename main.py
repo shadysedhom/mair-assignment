@@ -6,6 +6,7 @@ from statsRetriever import SystemsOverview
 from svm import run_svm_optimization
 from logistic_regression import run_logreg_optimization
 from decisionTree import evaluate_tree
+from multinomialNaiveBayes import evaluate_nb
 
 
 if __name__ == "__main__":
@@ -83,7 +84,17 @@ if __name__ == "__main__":
     #* --------- one with the original data and split, one with the deduplicated data and split.   
     #* -- Use bag of words representation and handle out of vocabulary words --
 
+    print("\n" + DASHED_LINE + "\nClassifier 2: Multinomial Naive Bayes\n" + DASHED_LINE)
 
+    multinomial_nb_model_original, multinomial_nb_metrics_original = evaluate_nb(
+        X_train_orig, y_train_orig, X_val_orig, y_val_orig, X_test_orig, y_test_orig, "original", alpha=2, min_df=2
+    )
+
+    multinomial_nb_model_deduplicated, multinomial_nb_metrics_deduplicated = evaluate_nb(
+        X_train_dedup, y_train_dedup, X_val_dedup, y_val_dedup, X_test_dedup, y_test_dedup, "deduplicated", alpha=2, min_df=2
+    )
+
+    systems_overview.add_system_results("Multinomial Naive Bayes", multinomial_nb_metrics_original, multinomial_nb_metrics_deduplicated)
 
     #* --------- Classifier 3: Support Vector Machine (SVM) ------------
     print("\n" + DASHED_LINE + "\nClassifier 3: Support Vector Machine\n" + DASHED_LINE)
