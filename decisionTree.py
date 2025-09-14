@@ -5,6 +5,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import KFold
 import pandas as pd
+from statsRetriever import get_stats
 # Convert text (sentences) into TF-IDF vectors because decision trees do not handle text input directly but need numerical input
 # https://machinelearningmastery.com/making-sense-of-text-with-decision-trees/ 
 def evaluate_tree(X_train, y_train, X_val, y_val, X_test, y_test, label):
@@ -24,7 +25,7 @@ def evaluate_tree(X_train, y_train, X_val, y_val, X_test, y_test, label):
 
     # Define hyperparameters to tune
     param_grid = {
-        'clf__max_depth': [1, 3, 5],
+        'clf__max_depth': [1, 5, 10, 15],
         'clf__min_samples_split': [2, 3, 5],
         'clf__criterion': ['gini', 'entropy']
     }
@@ -42,4 +43,6 @@ def evaluate_tree(X_train, y_train, X_val, y_val, X_test, y_test, label):
     print(f"Accuracy decision tree classifier ({label}): {accuracy:.4f}")
     print(classification_report(y_test, y_pred, zero_division=0))
 
-    return best_model
+    report = classification_report(y_test, y_pred, zero_division=0, output_dict=True)
+
+    return best_model, get_stats(report)

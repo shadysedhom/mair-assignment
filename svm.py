@@ -7,6 +7,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report, accuracy_score
 from scipy.sparse import vstack
+from statsRetriever import get_stats
 
 
 def run_svm_optimization(X_train, X_val, X_test, y_train, y_val, y_test, data_type_name, n_trials=50):
@@ -93,3 +94,7 @@ def run_svm_optimization(X_train, X_val, X_test, y_train, y_val, y_test, data_ty
     print(f"Evaluating best model on {data_type_name} data test set...")
     y_pred_test = best_svm.predict(X_test_bow)
     print(classification_report(y_test, y_pred_test, zero_division=0))
+
+    report = classification_report(y_test, y_pred_test, zero_division=0, output_dict=True)
+
+    return best_svm, get_stats(report)

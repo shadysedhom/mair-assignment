@@ -78,8 +78,11 @@ This will run the full pipeline, including training, testing and user interactio
   | baseline majority  | 0.42            | 0.59                   | N/A              | N/A                     | N/A           | N/A                  |
   | baseline rule-based| 0.90            | 0.84                   | N/A              | N/A                     | N/A           | N/A                  |
   | SVM                | 0.99            | 0.94                   | [0.93,0.99]      | [0.78,0.94]             | [0.93,0.99]   | [0.80,0.94]          |
-  | decision tree      | 0.84            | 0.83                   | [0.36,0.79]      | [0.47,0.86]             | [0.30,0.84]   | [0.32,0.83]          |
-  | Bram Classifier 1  |                 |                        |                  |                         |               |                      |
-  | Lenny  Classifier 2|                 |                        |                  |                         |               |                      |
-
+  | decision tree      | 0.96            | 0.92                   | [0.56,0.95]      | [0.59,0.91]             | [0.53,0.96]   | [0.55,0.92]          |
+  | Logistic Regression| 0.98            | 0.94                   | [0.91,0.99]      | [0.74,0.95]             | [0.90,0.99]   | [0.74,0.94]          |
+ 
   *precision and recall first value macro avg, second value weighted avg.
+
+The SVM, decision tree, and logistic regression have higher accuracy compared to the baseline. And among the (complex) machine learning systems, the SVM is the best-performing because it scores highest for accuracy, precision, and recall. The worst-performing is the decision tree. Therefore, the SVM would currently be the best choice for the dialogue system. 
+
+And duplication leads to higher accuracy, since the model can more easily recognize repeated data.

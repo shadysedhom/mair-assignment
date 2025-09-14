@@ -7,7 +7,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, accuracy_score
 from scipy.sparse import vstack
-
+from statsRetriever import get_stats
 
 def run_logreg_optimization(X_train, X_val, X_test, y_train, y_val, y_test, data_type_name, n_trials=50):
     """
@@ -80,3 +80,7 @@ def run_logreg_optimization(X_train, X_val, X_test, y_train, y_val, y_test, data
     print(f"Evaluating best Logistic Regression on {data_type_name} test set...")
     y_pred_test = best_logreg.predict(X_test_bow)
     print(classification_report(y_test, y_pred_test, zero_division=0))
+
+    report = classification_report(y_test, y_pred_test, zero_division=0, output_dict=True)
+
+    return best_logreg, get_stats(report)

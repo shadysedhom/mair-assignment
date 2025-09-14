@@ -2,12 +2,15 @@ import os
 
 import BaselineSystems as baseline
 from data import load_and_preprocess_data, split_data
+from statsRetriever import SystemsOverview
 from svm import run_svm_optimization
 from logistic_regression import run_logreg_optimization
 from decisionTree import evaluate_tree
 
 
 if __name__ == "__main__":
+
+    systems_overview = SystemsOverview()
 
     # ---- CONSTANTS ------
     DASHED_LINE = "-" * 100
@@ -61,18 +64,20 @@ if __name__ == "__main__":
     print("\n" + DASHED_LINE + "\nClassifier 1: Logistic Regression\n" + DASHED_LINE)
 
     # Run with original data
-    run_logreg_optimization(
+    logreg, logreg_metrics_original = run_logreg_optimization(
         X_train_orig, X_val_orig, X_test_orig,
         y_train_orig, y_val_orig, y_test_orig,
         "original"
     )
 
     # Run with deduplicated data
-    run_logreg_optimization(
+    logreg, logreg_metrics_deduplicated = run_logreg_optimization(
         X_train_dedup, X_val_dedup, X_test_dedup,
         y_train_dedup, y_val_dedup, y_test_dedup,
         "deduplicated"
     )
+
+    systems_overview.add_system_results("Logistic Regression", logreg_metrics_original, logreg_metrics_deduplicated)
 
     #* --------- TODO: Build Classifier 2 (Lenny) -------- Make 2 versions of your model:
     #* --------- one with the original data and split, one with the deduplicated data and split.   
@@ -84,27 +89,31 @@ if __name__ == "__main__":
     print("\n" + DASHED_LINE + "\nClassifier 3: Support Vector Machine\n" + DASHED_LINE)
 
     # Call the function for the original data
-    svm = run_svm_optimization(
+    svm, svm_metrics_original = run_svm_optimization(
         X_train_orig, X_val_orig, X_test_orig,
         y_train_orig, y_val_orig, y_test_orig,
         "original"
     )
 
     # Call the function for the deduplicated data
-    run_svm_optimization(
+    svm, svm_metrics_deduplicated = run_svm_optimization(
         X_train_dedup, X_val_dedup, X_test_dedup,
         y_train_dedup, y_val_dedup, y_test_dedup,
         "deduplicated"
     )
+
+    systems_overview.add_system_results("SVM", svm_metrics_original, svm_metrics_deduplicated)
     
     #* --------- Classifier 4: Decision Tree ------------
     print("\n" + DASHED_LINE +"\nClassifier 4: Decision Tree\n" + DASHED_LINE)
 
     # Once for the original data
-    evaluate_tree(X_train_orig, y_train_orig, X_val_orig, y_val_orig, X_test_orig, y_test_orig, "original")
+    decision_tree_model_original, decision_tree_metrics_original = evaluate_tree(X_train_orig, y_train_orig, X_val_orig, y_val_orig, X_test_orig, y_test_orig, "original")
 
     # Once for deduplicated data
-    decision_tree_model = evaluate_tree(X_train_dedup, y_train_dedup, X_val_dedup, y_val_dedup, X_test_dedup, y_test_dedup, "deduplicated")
+    decision_tree_model, decision_tree_metrics_deduplicated = evaluate_tree(X_train_dedup, y_train_dedup, X_val_dedup, y_val_dedup, X_test_dedup, y_test_dedup, "deduplicated")
+
+    systems_overview.add_system_results("Decision Tree", decision_tree_metrics_original, decision_tree_metrics_deduplicated)
 
     #* ---- TODO: After training, testing, and reporting performance, 
     #* ---- the program should offer a prompt to enter a new sentence and classify this sentence,
@@ -130,3 +139,6 @@ if __name__ == "__main__":
     print("Decision Tree (input output):", y_test, y_pred_decision_tree_custom)
 
     print(DASHED_LINE)
+
+    print("\nFinal results summary:")
+    systems_overview.print_results_table()
