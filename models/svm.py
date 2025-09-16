@@ -8,7 +8,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report, accuracy_score
 from scipy.sparse import vstack
-from statsRetriever import get_stats
+from utils.statsRetriever import get_stats
 
 
 def run_svm_optimization(X_train, X_val, X_test, y_train, y_val, y_test, data_type_name, n_trials=50):
@@ -21,6 +21,7 @@ def run_svm_optimization(X_train, X_val, X_test, y_train, y_val, y_test, data_ty
 
     # Define filename for cached study
     study_filename = f"optuna_study_svm_{data_type_name}.pkl"
+    study_filepath = os.path.join("optuna_study_results", study_filename)
     model_type = "SVM"
 
     # Vectorize the text data, CountVectorizer handles out-of-vocab words by default
@@ -35,9 +36,9 @@ def run_svm_optimization(X_train, X_val, X_test, y_train, y_val, y_test, data_ty
     X_test_bow = vectorizer.transform(X_test)
 
     # Caching logic: Check if study exists
-    if os.path.exists(study_filename):
-        print(f"Loading existing study for {model_type} on {data_type_name} data from {study_filename}")
-        study = joblib.load(study_filename)
+    if os.path.exists(study_filepath):
+        print(f"Loading existing study for {model_type} on {data_type_name} data from {study_filepath}")
+        study = joblib.load(study_filepath)
     else:
         print(f"No cached study found. Creating a new Optuna study for {model_type} on {data_type_name} data.")
         def objective(trial):
@@ -75,8 +76,8 @@ def run_svm_optimization(X_train, X_val, X_test, y_train, y_val, y_test, data_ty
         study.optimize(objective, n_trials=n_trials)
 
         # Save the completed study
-        joblib.dump(study, study_filename)
-        print(f"Saved new study to {study_filename}")
+        joblib.dump(study, study_filepath)
+        print(f"Saved new study to {study_filepath}")
 
     print(f"\nBest parameters found for {data_type_name} data: {study.best_params}")
 

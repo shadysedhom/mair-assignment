@@ -3,7 +3,7 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import classification_report, accuracy_score
 import pandas as pd
-from statsRetriever import get_stats
+from utils.statsRetriever import get_stats
 
 
 def evaluate_nb(X_train, y_train, X_val, y_val, X_test, y_test, label, alpha=1, min_df=2):

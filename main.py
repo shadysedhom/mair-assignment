@@ -1,13 +1,14 @@
 import os
 
-from data import load_and_preprocess_data, split_data
-from statsRetriever import SystemsOverview
-import BaselineSystems as baseline
-from logistic_regression import run_logreg_optimization
-from multinomialNaiveBayes import evaluate_nb
-from svm import run_svm_optimization
-from decisionTree import evaluate_tree
+from data.data import load_and_preprocess_data, split_data
+from utils.statsRetriever import SystemsOverview
 from cli import start_cli
+
+import models.BaselineSystems as baseline
+from models.logistic_regression import run_logreg_optimization
+from models.multinomialNaiveBayes import evaluate_nb
+from models.svm import run_svm_optimization
+from models.decisionTree import evaluate_tree
 
 
 if __name__ == "__main__":
@@ -18,7 +19,7 @@ if __name__ == "__main__":
     DASHED_LINE = "-" * 100
 
     # Start  of script
-    data_filepath = os.path.join(os.path.dirname(__file__), 'dialog_acts.dat')
+    data_filepath = os.path.join(os.path.dirname(__file__), './data/dialog_acts.dat')
 
     # Load and preprocess the data
     print(f"Loading and preprocessing data... \n")

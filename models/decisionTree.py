@@ -5,7 +5,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import KFold
 import pandas as pd
-from statsRetriever import get_stats
+from utils.statsRetriever import get_stats
+
 # Convert text (sentences) into TF-IDF vectors because decision trees do not handle text input directly but need numerical input
 # https://machinelearningmastery.com/making-sense-of-text-with-decision-trees/ 
 def evaluate_tree(X_train, y_train, X_val, y_val, X_test, y_test, label):

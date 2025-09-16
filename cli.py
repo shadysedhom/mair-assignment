@@ -17,10 +17,10 @@ def start_cli(models):
     """
 
     # Intro
-    print("\n" + "-"*50)
-    print("Welcome to the Interactive Classifier!".center(100) + "\n" + "-"*50)
+    print("\n" + "-"*100)
+    print("Welcome to the Interactive Classifier!".center(100) + "\n" + "-"*100)
     print("Enter a sentence to classify it with the selected model.")
-    print("Type '!menu' to select a model, or '!quit' to exit." + "\n" + "-"*50)
+    print("Type '!menu' to select a model, or '!quit' to exit." + "\n" + "-"*100)
 
     # Get model names
     model_names = list(models.keys())
@@ -84,7 +84,7 @@ def start_cli(models):
         # Input needs to be lowercased before its used for prediction
         sentence = user_input.lower()
 
-        print("\n--- Prediction Results ---")
+        print("\n--------------- Prediction Results ---------------")
         if current_model_index < len(model_names):
             # Single model prediction
             model = models[current_model_name]
@@ -95,8 +95,8 @@ def start_cli(models):
         else:
             # Comparison Mode
             print(f"Input: '{user_input}'")
-            print("-" * 30)
+            print("-" * 50)
             for name, model in models.items():
                 prediction = model.predict([sentence])[0]
                 print(f"{name:<25} -> '{prediction}'")
-        print("--------------------------")
+        print("-" * 50)

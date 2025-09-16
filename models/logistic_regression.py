@@ -8,7 +8,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, accuracy_score
 from scipy.sparse import vstack
-from statsRetriever import get_stats
+from utils.statsRetriever import get_stats
 
 def run_logreg_optimization(X_train, X_val, X_test, y_train, y_val, y_test, data_type_name, n_trials=50):
     """
@@ -19,6 +19,7 @@ def run_logreg_optimization(X_train, X_val, X_test, y_train, y_val, y_test, data
     print(f"\n--- Running Logistic Regression for '{data_type_name}' data ---")
 
     study_filename = f"optuna_study_logreg_{data_type_name}.pkl"
+    study_filepath = os.path.join("optuna_study_results", study_filename)
     model_type = "Logistic Regression"
 
     # Vectorize text
@@ -28,9 +29,9 @@ def run_logreg_optimization(X_train, X_val, X_test, y_train, y_val, y_test, data
     X_test_bow = vectorizer.transform(X_test)
 
     # Caching: load previous study if available
-    if os.path.exists(study_filename):
-        print(f"Loading existing study for {model_type} on {data_type_name} from {study_filename}")
-        study = joblib.load(study_filename)
+    if os.path.exists(study_filepath):
+        print(f"Loading existing study for {model_type} on {data_type_name} from {study_filepath}")
+        study = joblib.load(study_filepath)
     else:
         print(f"No cached study found. Creating a new Optuna study for {model_type} on {data_type_name} data.")
 
@@ -57,8 +58,8 @@ def run_logreg_optimization(X_train, X_val, X_test, y_train, y_val, y_test, data
         print(f"Running Optuna optimization with {n_trials} trials...")
         study.optimize(objective, n_trials=n_trials)
 
-        joblib.dump(study, study_filename)
-        print(f"Saved Optuna study to {study_filename}")
+        joblib.dump(study, study_filepath)
+        print(f"Saved Optuna study to {study_filepath}")
 
     print(f"\nBest parameters for {data_type_name}: {study.best_params}")
 
