@@ -100,8 +100,13 @@ def run_svm_optimization(X_train, X_val, X_test, y_train, y_val, y_test, data_ty
     # Evaluate the pipeline on the test set
     print(f"Evaluating best model on {data_type_name} data test set...")
     y_pred_test = pipeline.predict(X_test)
-    print(classification_report(y_test, y_pred_test, zero_division=0))
 
+    # Generate report dictionary
     report = classification_report(y_test, y_pred_test, zero_division=0, output_dict=True)
+
+    # Extract and print the concise summary
+    accuracy = report['accuracy']
+    weighted_f1 = report['weighted avg']['f1-score']
+    print(f"\nAccuracy: {accuracy:.4f}, Weighted F1-Score: {weighted_f1:.4f}")
 
     return pipeline, get_stats(report)

@@ -128,7 +128,7 @@ if __name__ == "__main__":
     systems_overview.add_system_results("Decision Tree", decision_tree_metrics_original, decision_tree_metrics_deduplicated)
 
     #* ------ Evaluation ---------
-    print("evaluation on custom test set:\n" + DASHED_LINE)
+    print("\nEvaluation on custom test set:\n" + DASHED_LINE)
 
     custom_test_set = [
         ("phonenumer please!", "request"),

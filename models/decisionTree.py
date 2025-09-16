@@ -41,9 +41,12 @@ def evaluate_tree(X_train, y_train, X_val, y_val, X_test, y_test, label):
     y_pred = best_model.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
     
-    print(f"Accuracy decision tree classifier ({label}): {accuracy:.4f}")
-    print(classification_report(y_test, y_pred, zero_division=0))
-
+    # Generate report dictionary
     report = classification_report(y_test, y_pred, zero_division=0, output_dict=True)
+
+    # Extract and print the concise summary
+    accuracy = report['accuracy']
+    weighted_f1 = report['weighted avg']['f1-score']
+    print(f"Accuracy: {accuracy:.4f}, Weighted F1-Score: {weighted_f1:.4f}")
 
     return best_model, get_stats(report)
