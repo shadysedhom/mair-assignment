@@ -1,14 +1,15 @@
 import os
 
 from data.data import load_and_preprocess_data, split_data
-from utils.statsRetriever import SystemsOverview
+from utils.stats_retriever import SystemsOverview
+from sklearn.metrics import accuracy_score
 from cli import start_cli
 
-import models.BaselineSystems as baseline
+import models.baseline_systems as baseline
 from models.logistic_regression import run_logreg_optimization
-from models.multinomialNaiveBayes import evaluate_nb
+from models.multinomial_naive_bayes import run_nb_optimization
 from models.svm import run_svm_optimization
-from models.decisionTree import evaluate_tree
+from models.decision_tree import run_dt_optimization
 
 
 if __name__ == "__main__":
@@ -42,25 +43,39 @@ if __name__ == "__main__":
     print(f"Deduplicated data split: Train={len(X_train_dedup)}, Val={len(X_val_dedup)}, Test={len(X_test_dedup)}")
 
 
-    #* -------------       MAJORITY VOTE (NAIVE) BASELINE       ---------------
-    # here we just predict the most occuring label in the data (everytime)
-
+    #* ------------- Baselines ---------------
     print("\n" + DASHED_LINE + "\nBaselines\n" + DASHED_LINE)
 
-    resultBaseLineMajority = baseline.calculate_majority_label_accuracy(df_with_duplicates.values.tolist())
-    print("Majority Baseline Accuracy (duplicated):", round(resultBaseLineMajority, 3))
+    # --- Majority Baseline ---
+    print("--- Majority Baseline ---")
 
-    resultBaseLineMajority = baseline.calculate_majority_label_accuracy(df_without_duplicates.values.tolist())
-    print("Majority Baseline Accuracy (deduplicated):", round(resultBaseLineMajority, 3))
+    # On original data
+    majority_model_orig = baseline.MajorityBaseline()
+    majority_model_orig.fit(y_train_orig)
+    y_pred_maj_orig = majority_model_orig.predict(X_test_orig)
+    accuracy_maj_orig = accuracy_score(y_test_orig, y_pred_maj_orig)
+    print(f"Majority Baseline Accuracy (original): {accuracy_maj_orig:.4f}")
 
-    #* -------------       MANUAL RULE BASED BASELINE        -----------------
-    # Comprised of manualy found rules
+    # On deduplicated data
+    majority_model_dedup = baseline.MajorityBaseline()
+    majority_model_dedup.fit(y_train_dedup)
+    y_pred_maj_dedup = majority_model_dedup.predict(X_test_dedup)
+    accuracy_maj_dedup = accuracy_score(y_test_dedup, y_pred_maj_dedup)
+    print(f"Majority Baseline Accuracy (deduplicated): {accuracy_maj_dedup:.4f}")
 
-    resultBaseLine = baseline.calculate_accuracy(df_with_duplicates.values.tolist())
-    print("\nRule-Based Accuracy (duplicated):", round(resultBaseLine, 3))
+    # --- Rule-Based Baseline ---
+    print("\n--- Rule-Based Baseline ---")
+    # On original data
+    rule_model_orig = baseline.RuleBasedBaseline()
+    y_pred_rule_orig = rule_model_orig.predict(X_test_orig)
+    accuracy_rule_orig = accuracy_score(y_test_orig, y_pred_rule_orig)
+    print(f"Rule-Based Baseline Accuracy (original): {accuracy_rule_orig:.4f}")
 
-    resultBaseLine = baseline.calculate_accuracy(df_without_duplicates.values.tolist())
-    print("Rule-Based Accuracy (deduplicated):", round(resultBaseLine, 3))
+    # On deduplicated data
+    rule_model_dedup = baseline.RuleBasedBaseline()
+    y_pred_rule_dedup = rule_model_dedup.predict(X_test_dedup)
+    accuracy_rule_dedup = accuracy_score(y_test_dedup, y_pred_rule_dedup)
+    print(f"Rule-Based Baseline Accuracy (deduplicated): {accuracy_rule_dedup:.4f}")
 
 
     #* --------- Classifier 1: Logistic Regression ------------
@@ -86,13 +101,13 @@ if __name__ == "__main__":
     print("\n" + DASHED_LINE + "\nClassifier 2: Multinomial Naive Bayes\n" + DASHED_LINE)
 
     # On the original data
-    multinomial_nb_model_original, multinomial_nb_metrics_original = evaluate_nb(
-        X_train_orig, y_train_orig, X_val_orig, y_val_orig, X_test_orig, y_test_orig, "original", alpha=2, min_df=2
+    multinomial_nb_model_original, multinomial_nb_metrics_original = run_nb_optimization(
+        X_train_orig, y_train_orig, X_val_orig, y_val_orig, X_test_orig, y_test_orig, "original"
     )
 
     # On the deduplicated data
-    multinomial_nb_model_deduplicated, multinomial_nb_metrics_deduplicated = evaluate_nb(
-        X_train_dedup, y_train_dedup, X_val_dedup, y_val_dedup, X_test_dedup, y_test_dedup, "deduplicated", alpha=2, min_df=2
+    multinomial_nb_model_deduplicated, multinomial_nb_metrics_deduplicated = run_nb_optimization(
+        X_train_dedup, y_train_dedup, X_val_dedup, y_val_dedup, X_test_dedup, y_test_dedup, "deduplicated"
     )
 
     systems_overview.add_system_results("Multinomial Naive Bayes", multinomial_nb_metrics_original, multinomial_nb_metrics_deduplicated)
@@ -120,10 +135,10 @@ if __name__ == "__main__":
     print("\n" + DASHED_LINE +"\nClassifier 4: Decision Tree\n" + DASHED_LINE)
 
     # Once for the original data
-    decision_tree_model_original, decision_tree_metrics_original = evaluate_tree(X_train_orig, y_train_orig, X_val_orig, y_val_orig, X_test_orig, y_test_orig, "original")
+    decision_tree_model_original, decision_tree_metrics_original = run_dt_optimization(X_train_orig, y_train_orig, X_val_orig, y_val_orig, X_test_orig, y_test_orig, "original")
 
     # Once for deduplicated data
-    decision_tree_model_deduplicated, decision_tree_metrics_deduplicated = evaluate_tree(X_train_dedup, y_train_dedup, X_val_dedup, y_val_dedup, X_test_dedup, y_test_dedup, "deduplicated")
+    decision_tree_model_deduplicated, decision_tree_metrics_deduplicated = run_dt_optimization(X_train_dedup, y_train_dedup, X_val_dedup, y_val_dedup, X_test_dedup, y_test_dedup, "deduplicated")
 
     systems_overview.add_system_results("Decision Tree", decision_tree_metrics_original, decision_tree_metrics_deduplicated)
 

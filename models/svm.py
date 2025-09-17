@@ -8,7 +8,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report, accuracy_score
 from scipy.sparse import vstack
-from utils.statsRetriever import get_stats
+from utils.stats_retriever import get_stats
 
 
 def run_svm_optimization(X_train, X_val, X_test, y_train, y_val, y_test, data_type_name, n_trials=50):
