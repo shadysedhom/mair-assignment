@@ -3,3 +3,4 @@ optuna
 joblib
 scikit-learn
 scipy
+python-Levenshtein

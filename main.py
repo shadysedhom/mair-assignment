@@ -10,6 +10,9 @@ from models.logistic_regression import run_logreg_optimization
 from models.multinomial_naive_bayes import run_nb_optimization
 from models.svm import run_svm_optimization
 from models.decision_tree import run_dt_optimization
+from keyword_searcher import RestaurantSearcher
+from data.restaurant_manager import RestaurantManager
+from data.restaurant_reader import RestaurantReader
 
 
 if __name__ == "__main__":
@@ -166,6 +169,13 @@ if __name__ == "__main__":
         "SVM": svm_deduplicated_model,
         "Decision Tree": decision_tree_model_deduplicated
     }
+
+    restaurant_searcher = RestaurantSearcher(RestaurantManager(RestaurantReader(os.path.join(os.path.dirname(__file__), './data/restaurant_info.csv')).read_restaurants()))
+    print("\n" + DASHED_LINE + "\n keyword search example:")
+    restaurant_searcher.search("I want a cheap restaurant in the north that serves chines food", "pricerange")
+    restaurant_searcher.search("I want a cheap restaurant in the north that serves chines food", "area")
+    restaurant_searcher.search("I want a cheap restaurant in the north that serves chines food", "food")
+    print(restaurant_searcher.unique_pricerange, restaurant_searcher.unique_area, restaurant_searcher.unique_food)
 
     # Start simple CLI
     start_cli(models)
