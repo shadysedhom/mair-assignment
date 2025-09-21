@@ -14,7 +14,7 @@ from models.decision_tree import run_dt_optimization
 from dialogue_system.keyword_searcher import RestaurantSearcher
 from dialogue_system.restaurant_manager import RestaurantManager
 from dialogue_system.restaurant_reader import RestaurantReader
-
+from finite_state_machine_initializor import initialize_fsm
 
 if __name__ == "__main__":
 
@@ -172,6 +172,8 @@ if __name__ == "__main__":
     }
 
     restaurant_searcher = RestaurantSearcher(RestaurantManager(RestaurantReader(os.path.join(os.path.dirname(__file__), './data/restaurant_info.csv')).read_restaurants()))
+
+    # # --- test keyword search ---
     print("\n" + DASHED_LINE + "\n keyword search example:")
     restaurant_searcher.search("I want a cheap restaurant in the north that serves chines food", "pricerange")
     restaurant_searcher.search("I want a cheap restaurant in the north that serves chines food", "area")
@@ -179,4 +181,11 @@ if __name__ == "__main__":
     print(restaurant_searcher.unique_pricerange, restaurant_searcher.unique_area, restaurant_searcher.unique_food)
 
     # Start simple CLI
+
+    # --- Example Run ---
+    fsm = initialize_fsm(restaurant_searcher, decision_tree_model_original)
+
+    while fsm.is_active:
+        fsm.step()   
+
     start_cli(models)
