@@ -1,4 +1,4 @@
-from Transition_states import FSM, State, Transition, Context, Inform, Affirm, Deny, Hello, Null,Negate
+from dialogue_system.finite_state_machine import FSM, State, Transition, Context, Inform, Affirm, Deny, Hello, Null,Negate
 from dialogue_system import keyword_searcher
 
 
