@@ -21,7 +21,7 @@ def run_svm_optimization(X_train, X_val, X_test, y_train, y_val, y_test, data_ty
 
     # Define filename for cached study
     study_filename = f"optuna_study_svm_{data_type_name}.pkl"
-    study_filepath = os.path.join("optuna_study_results", study_filename)
+    study_filepath = os.path.join("model_tuning", study_filename)
     model_type = "SVM"
 
     # Vectorize the text data, CountVectorizer handles out-of-vocab words by default

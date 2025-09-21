@@ -19,7 +19,7 @@ def run_logreg_optimization(X_train, X_val, X_test, y_train, y_val, y_test, data
     print(f"\n--- Running Logistic Regression for '{data_type_name}' data ---")
 
     study_filename = f"optuna_study_logreg_{data_type_name}.pkl"
-    study_filepath = os.path.join("optuna_study_results", study_filename)
+    study_filepath = os.path.join("model_tuning", study_filename)
     model_type = "Logistic Regression"
 
     # Vectorize text

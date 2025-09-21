@@ -1,42 +1,52 @@
 
-def start_cli(models):
+# A dictionary to hold the templates for system utterances.
+system_utterances = {
+    "welcome": "Hello, welcome to the Cambridge restaurant system! You can ask for restaurants by area, price range or food type. How may I help you?",
+    "ask_area": "What part of town are you looking for?",
+    "ask_pricerange": "And what price range are you looking for? (cheap, moderate, or expensive)",
+    "ask_food": "What type of food would you like?",
+    "no_results": "I'm sorry, there are no restaurants that match your request.",
+    "offer_restaurant": "{restaurant_name} is a nice place in the {area} part of town serving {food} food in the {pricerange} price range.",
+    "ask_more_info": "Would you like more information or another suggestion?",
+    "goodbye": "Goodbye!"
+}
+
+from dialogue_system.finite_state_machine_initializor import initialize_fsm
+
+def start_dialogue_system(model, restaurant_manager, restaurant_searcher):
+    """
+    Launches the interactive restaurant dialogue system.
+    """
+    print("\n" + "-"*100)
+    print("Welcome to the Restaurant Dialogue System!".center(100) + "\n" + "-"*100)
+    
+    fsm = initialize_fsm(restaurant_searcher, model, restaurant_manager)
+    
+    while fsm.is_active:
+        fsm.step()
+    
+    print("\nDialogue ended. Returning to main menu...")
+
+
+def start_simple_cli(models):
     """
     Launches an interactive command-line interface for classifying user input using trained models.
-
-    Args:
-        models (dict): A dictionary mapping model names (str) to trained model objects.
-                       Each model must implement a .predict([text]) method.
-
-    Features:
-        - Allows the user to select a model for classification or compare predictions from all models.
-        - Accepts user input sentences and displays the predicted class label.
-        - Special commands:
-            !menu : Open model selection menu.
-            !quit : Exit the CLI.
-        - Provides a user-friendly prompt and instructions.
     """
-
-    # Intro
     print("\n" + "-"*100)
     print("Welcome to the Interactive Classifier!".center(100) + "\n" + "-"*100)
     print("Enter a sentence to classify it with the selected model.")
     print("Type '!menu' to select a model, or '!quit' to exit." + "\n" + "-"*100)
 
-    # Get model names
     model_names = list(models.keys())
-    
-    # Initialization of model selection
     current_model_index = None
     current_model_name = "No model selected"
 
-    # Keeps session active
     while True:
         user_input = input(f"({current_model_name}) > ").strip()
 
         if not user_input:
             continue
 
-        # Conditionally show model selection menu
         if user_input.lower() in ["!menu", "!model", "!switch", "!mode"]:
             print("\n--- Model Selection ---")
             for i, name in enumerate(model_names):
@@ -49,7 +59,6 @@ def start_cli(models):
                 if not choice_str:
                     continue
                 
-                # Use input to update the selected mode
                 choice_index = int(choice_str) - 1
 
                 if 0 <= choice_index < len(model_names):
@@ -66,37 +75,77 @@ def start_cli(models):
                 print("Invalid input. Please enter a number from the list.")
             continue
 
-        # Conditionally exit the CLI
         elif user_input.lower() in ["!quit", "!exit", "!escape"]:
-            print("\nGoodbye!")
+            print("\nReturning to main menu...")
             break
         
-        # Hints
         elif user_input.startswith("!"):
             print(f"Unknown command: '{user_input}'. Type '!menu' to select a model or '!quit' to exit.")
             continue
 
-        # At this point, user_input is a sentence to classify
         if current_model_index is None:
             print("No model selected. Type '!menu' to choose one first.")
             continue
 
-        # Input needs to be lowercased before its used for prediction
         sentence = user_input.lower()
 
         print("\n--------------- Prediction Results ---------------")
         if current_model_index < len(model_names):
-            # Single model prediction
             model = models[current_model_name]
             prediction = model.predict([sentence])[0]
             print(f"Input: '{user_input}'")
             print(f"Model: {current_model_name}")
             print(f"Predicted Act: '{prediction}'")
         else:
-            # Comparison Mode
             print(f"Input: '{user_input}'")
             print("-" * 50)
             for name, model in models.items():
                 prediction = model.predict([sentence])[0]
                 print(f"{name:<25} -> '{prediction}'")
         print("-" * 50)
+
+def start_cli(models, restaurant_manager, restaurant_searcher):
+    """
+    Main CLI entry point that allows switching between the simple classifier and the dialogue system.
+    """
+    while True:
+        print("\n" + "-"*100)
+        print("Main Menu".center(100))
+        print("-"*100)
+        print("1. Interactive Classifier (Test dialogue act models)")
+        print("2. Restaurant Dialogue System")
+        print("3. Exit")
+        print("-"*100)
+        choice = input("Enter your choice: ").strip()
+
+        if choice == '1':
+            start_simple_cli(models)
+        elif choice == '2':
+            print("\n--- Select a Model for the Dialogue System ---")
+            model_names = list(models.keys())
+            for i, name in enumerate(model_names):
+                print(f"  {i+1}. {name}")
+            print("------------------------------------------")
+            
+            try:
+                model_choice_str = input("Enter your choice: ").strip()
+                if not model_choice_str:
+                    continue
+                
+                model_choice_index = int(model_choice_str) - 1
+
+                if 0 <= model_choice_index < len(model_names):
+                    chosen_model_name = model_names[model_choice_index]
+                    chosen_model = models[chosen_model_name]
+                    print(f"(Using '{chosen_model_name}' for dialogue act classification)")
+                    start_dialogue_system(chosen_model, restaurant_manager, restaurant_searcher)
+                else:
+                    print("Invalid choice. Returning to main menu.")
+            except (ValueError, IndexError):
+                print("Invalid input. Please enter a number from the list.")
+
+        elif choice == '3':
+            print("\nGoodbye!")
+            break
+        else:
+            print("Invalid choice. Please enter 1, 2, or 3.")

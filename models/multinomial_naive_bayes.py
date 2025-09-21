@@ -19,7 +19,7 @@ def run_nb_optimization(X_train, y_train, X_val, y_val, X_test, y_test, data_typ
 
     # Define filename for cached study
     study_filename = f"optuna_study_nb_{data_type_name}.pkl"
-    study_filepath = os.path.join("optuna_study_results", study_filename)
+    study_filepath = os.path.join("model_tuning", study_filename)
     model_type = "Multinomial Naive Bayes"
 
     # Vectorize text data using the same settings as before

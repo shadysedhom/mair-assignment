@@ -14,7 +14,7 @@ from models.decision_tree import run_dt_optimization
 from dialogue_system.keyword_searcher import RestaurantSearcher
 from dialogue_system.restaurant_manager import RestaurantManager
 from dialogue_system.restaurant_reader import RestaurantReader
-from finite_state_machine_initializor import initialize_fsm
+
 
 if __name__ == "__main__":
 
@@ -162,7 +162,7 @@ if __name__ == "__main__":
     print("\n" + DASHED_LINE + "\nFinal results summary:")
     systems_overview.print_results_table()
 
-    #*---------------------- Interactive Classifier --------------------------
+    #*---------------------- Interactive Dialogue System --------------------------
     # Store of the trained models (on DEDUPLICATED data)
     models = {
         "Logistic Regression": logreg_deduplicated_model,
@@ -171,21 +171,21 @@ if __name__ == "__main__":
         "Decision Tree": decision_tree_model_deduplicated
     }
 
-    restaurant_searcher = RestaurantSearcher(RestaurantManager(RestaurantReader(os.path.join(os.path.dirname(__file__), './data/restaurant_info.csv')).read_restaurants()))
+    # Initialize all the components for the dialogue system
+    print("\n" + DASHED_LINE)
+    print("Initializing dialogue system components...")
+    
+    # Create the restaurant reader
+    restaurant_reader = RestaurantReader(os.path.join(os.path.dirname(__file__), './data/restaurant_info.csv'))
+    
+    # Load restaurants and create the manager
+    restaurant_manager = RestaurantManager(restaurant_reader.read_restaurants())
+    
+    # Create the searcher
+    restaurant_searcher = RestaurantSearcher(restaurant_manager)
+    
+    print("Components initialized for Dialogue System.")
+    
+    # Start the main CLI, passing all components
+    start_cli(models, restaurant_manager, restaurant_searcher)
 
-    # # --- test keyword search ---
-    print("\n" + DASHED_LINE + "\n keyword search example:")
-    restaurant_searcher.search("I want a cheap restaurant in the north that serves chines food", "pricerange")
-    restaurant_searcher.search("I want a cheap restaurant in the north that serves chines food", "area")
-    restaurant_searcher.search("I want a cheap restaurant in the north that serves chines food", "food")
-    print(restaurant_searcher.unique_pricerange, restaurant_searcher.unique_area, restaurant_searcher.unique_food)
-
-    # Start simple CLI
-
-    # --- Example Run ---
-    fsm = initialize_fsm(restaurant_searcher, decision_tree_model_original)
-
-    while fsm.is_active:
-        fsm.step()   
-
-    start_cli(models)

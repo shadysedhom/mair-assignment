@@ -1,8 +1,10 @@
+import random
 from dialogue_system.finite_state_machine import FSM, State, Transition, Context, Inform, Affirm, Deny, Hello, Null,Negate
 from dialogue_system import keyword_searcher
+from dialogue_system.restaurant_manager import RestaurantManager
 
 
-def initialize_fsm(keyword_searcher: keyword_searcher, ML_model) -> FSM:
+def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_manager: RestaurantManager) -> FSM:
 
     def welcome_action(fsm: FSM):
         print("Welcome! Let's start. What kind of restaurant are you looking for? Please inform me about your preferences (area, food, price range).")
@@ -26,6 +28,7 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model) -> FSM:
         return action
 
     def ask_area_action(fsm: FSM):
+        valid_options = fsm.restaurant_manager.get_labels('area')
         print("Which area would you like?")
         text_input = input("You: ")
         action = fsm.ML_model.predict([text_input])[0]
@@ -34,12 +37,13 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model) -> FSM:
         if area_output:
             fsm.context.area_known = True
             fsm.context.area = area_output
+        else:
+            print(f"I'm sorry, I don't recognize that area. Please choose from: {', '.join(valid_options)}.")
 
         return action
 
     def ask_food_action(fsm: FSM): 
         print("What type of food do you prefer?")
-
         text_input = input("You: ")
         action = fsm.ML_model.predict([text_input])[0]
 
@@ -47,10 +51,13 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model) -> FSM:
         if food_output:
             fsm.context.food_known = True
             fsm.context.food = food_output
+        else:
+            print("I'm sorry, I don't recognize that food type. Please try another one.")
 
         return action
 
     def ask_pricerange_action(fsm: FSM):
+        valid_options = fsm.restaurant_manager.get_labels('pricerange')
         print("What price range are you looking for?")
         text_input = input("You: ")
         action = fsm.ML_model.predict([text_input])[0]
@@ -59,12 +66,26 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model) -> FSM:
         if pricerange_output:
             fsm.context.pricerange_known = True
             fsm.context.pricerange = pricerange_output
+        else:
+            print(f"I'm sorry, I don't recognize that price range. Please choose from: {', '.join(valid_options)}.")
 
         return action
 
-    def suggest_restaurant_action(fsm: FSM): 
-        print("I suggest a restaurant for you.")
-        print(f"Based on your preferences: Area - {fsm.context.area}, Food - {fsm.context.food}, Price Range - {fsm.context.pricerange}.")
+    def suggest_restaurant_action(fsm: FSM):
+        matches = fsm.restaurant_manager.find_restaurants(
+            area=fsm.context.area,
+            pricerange=fsm.context.pricerange,
+            food=fsm.context.food
+        )
+
+        if not matches:
+            print("I'm sorry, there are no restaurants that match your request.")
+            return "none" 
+
+        suggestion = random.choice(matches)
+        fsm.context.remaining_matches = [r for r in matches if r != suggestion]
+
+        print(f"{suggestion.name} is a nice place in the {suggestion.area} part of town serving {suggestion.food} food in the {suggestion.pricerange} price range.")
         return "inform"
     
     def ask_conformation_action(fsm: FSM): 
@@ -124,15 +145,15 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model) -> FSM:
         fsm.is_active = False
         return "bye"
 
-    welcome = State("welcome", welcome_action) # (1)
-    ask_area = State("ask_area", ask_area_action) # (2)
-    ask_food = State("ask_food", ask_food_action) # (3)
-    ask_pricerange = State("ask_pricerange", ask_pricerange_action) # (4)
-    suggest_restaurant = State("suggest_restaurant", suggest_restaurant_action) # (5)
-    ask_conformation = State("ask_conformation", ask_conformation_action) # (6)
-    ask_part_incorrect = State("ask_part_incorrect", ask_part_incorrect_action) # (7)
-    ask_preference = State("ask_to_express_preference", ask_preference_action) # (8)
-    bye = State("bye", bye_action) # (9)
+    welcome = State("welcome", welcome_action)
+    ask_area = State("ask_area", ask_area_action)
+    ask_food = State("ask_food", ask_food_action)
+    ask_pricerange = State("ask_pricerange", ask_pricerange_action)
+    suggest_restaurant = State("suggest_restaurant", suggest_restaurant_action)
+    ask_conformation = State("ask_conformation", ask_conformation_action)
+    ask_part_incorrect = State("ask_part_incorrect", ask_part_incorrect_action)
+    ask_preference = State("ask_to_express_preference", ask_preference_action)
+    bye = State("bye", bye_action)
 
     welcome.add_transition(Transition(suggest_restaurant, lambda a, c: isinstance(a, (Inform, Hello, Null)) and c.area_known and c.food_known and c.pricerange_known))
     welcome.add_transition(Transition(ask_area, lambda a, c: isinstance(a, (Inform, Hello, Null)) and not c.area_known))
@@ -171,6 +192,6 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model) -> FSM:
 
 
     ctx = Context()
-    fsm = FSM(welcome, ctx, keyword_searcher, ML_model)
+    fsm = FSM(welcome, ctx, keyword_searcher, ML_model, restaurant_manager)
 
     return fsm

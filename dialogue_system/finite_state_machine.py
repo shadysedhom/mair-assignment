@@ -1,8 +1,9 @@
 from __future__ import annotations
 from typing import Callable, List, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from dialogue_system import keyword_searcher
+from dialogue_system.restaurant_manager import RestaurantManager
 
 
 # --- Context ---
@@ -15,6 +16,7 @@ class Context:
     food : Optional[str] = None
     pricerange : Optional[str] = None
     incorrect_part : Optional[str] = None
+    remaining_matches: List = field(default_factory=list)
 
 
 # --- Actions ---
@@ -70,11 +72,12 @@ class State:
         return [t for t in self.transitions if t.is_triggered(action, context)]
 
 class FSM:
-    def __init__(self, initial_state: State, context: Context, keyword_searcher: keyword_searcher, ML_model) -> None:
+    def __init__(self, initial_state: State, context: Context, keyword_searcher: keyword_searcher, ML_model, restaurant_manager: RestaurantManager) -> None:
         self.current_state = initial_state
         self.context = context
         self.keyword_searcher = keyword_searcher
         self.ML_model = ML_model
+        self.restaurant_manager = restaurant_manager
         self.is_active = True
 
     def step(self):
