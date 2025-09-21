@@ -38,6 +38,20 @@ class RestaurantSearcher:
         domain_list = self.restaurant_manager.get_labels(attribute)
         tokens = preprocess(utterance)
 
+        # --- Direct Match Check first ---
+        for token in tokens:
+            # Convert domain_list terms to lower for comparison
+            lower_domain_list = [d.lower() for d in domain_list]
+            if token.lower() in lower_domain_list:
+                # Found a direct match, update and return
+                if attribute == "food":
+                    self.unique_food = token
+                elif attribute == "area":
+                    self.unique_area = token
+                elif attribute == "pricerange":
+                    self.unique_pricerange = token
+                return token # Return the directly matched term
+
         context_words = set()
         for i, token in enumerate(tokens):
             if token in self.keywords[attribute]:
@@ -69,7 +83,7 @@ class RestaurantSearcher:
         ranked = tfidf_ranking(utterance.lower(), domain_list)
         if ranked:
             top_term, score = ranked[0]
-            if score >= 0.2:
+            if score >= 0.5:
                 if attribute == "food":
                     self.unique_food = top_term
                 elif attribute == "area":

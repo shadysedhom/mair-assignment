@@ -48,10 +48,10 @@ This will run the full pipeline, including training, testing and user interactio
 
 ## Contributions
 
-| Team Member | Tasks                                                                                                              |
-|-------------|--------------------------------------------------------------------------------------------------------------------|
-| Bram        | Classifier 1 (Logistic Regression) + State Diagram + States & Transitions + Updated ReadMe for Part 1b             |
-| Lenny       | Classifier 2 (Naive Multinomial Bayes) + States & Transitions                                                      |
-| Shady       | Data Preprocessing + Classifier 3 (SVM) + CLI + Feedback 1A (Refactoring) + Restaurant Lookup Funtion              |
-| Dirk-Jan    | Baseline Systems + Classifier Decision Tree + Evaluation + State Diagram + States & Transitions + keyword matching |
+| Team Member | Tasks                                                                                                                                       |
+|-------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| Bram        | Classifier 1 (Logistic Regression) + State Diagram + States & Transitions + Updated ReadMe for Part 1b                                      |
+| Lenny       | Classifier 2 (Naive Multinomial Bayes) + States & Transitions                                                                               |
+| Shady       | Data Preprocessing + Classifier 3 (SVM) + CLI 1A/1B + Feedback 1A (Refactoring) + Restaurant Lookup Function + State Debugging & Edge Cases |
+| Dirk-Jan    | Baseline Systems + Classifier Decision Tree + Evaluation + State Diagram + States & Transitions + keyword matching                          |
 
