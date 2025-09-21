@@ -36,7 +36,6 @@ class Request(Action): pass
 class Restart(Action): pass
 class Thankyou(Action): pass
 
-# --- Transition ---
 class Transition:
     def __init__(self, target: State, trigger: Callable[[Action, Context], bool]):
         self.target = target
@@ -48,7 +47,6 @@ class Transition:
 
 from typing import Callable, List, Optional
 
-# --- State ---
 class State:
     def __init__(self, name: str, action: Optional[Callable[["FSM"], None]] = None):
         """
@@ -71,8 +69,6 @@ class State:
         """Return all transitions triggered by the given action and context."""
         return [t for t in self.transitions if t.is_triggered(action, context)]
 
-
-# --- FSM ---
 class FSM:
     def __init__(self, initial_state: State, context: Context, keyword_searcher: keyword_searcher, ML_model) -> None:
         self.current_state = initial_state
@@ -89,6 +85,16 @@ class FSM:
 
         print(f"[FSM] Current state: {self.current_state.name}, Action: {string_action}")
 
+        action = self.set_new_action(string_action)
+
+
+        candidates = self.current_state.possible_transitions(action, self.context)
+        if candidates:
+            self.current_state = candidates[0].target
+        else:
+            print("[FSM] No valid transition, staying in same state.")
+
+    def set_new_action(self, string_action):
         if string_action == "inform":
             action = Inform()
         elif string_action == "affirm":
@@ -119,10 +125,4 @@ class FSM:
             action = Restart()
         elif string_action == "thankyou":
             action = Thankyou()
-
-
-        candidates = self.current_state.possible_transitions(action, self.context)
-        if candidates:
-            self.current_state = candidates[0].target
-        else:
-            print("[FSM] No valid transition, staying in same state.")
+        return action
