@@ -42,7 +42,8 @@ This will run the full pipeline, including training, testing and user interactio
 
 - **`utils/csv_reader.py`**: Utility class for reading CSV files, used by the restaurant reader component.
 - **`utils/stats_retriever.py`**: Provides functionality for collecting and displaying system performance statistics and results comparison.
-
+- 
+- **`StateDiagram.jpg.py`**: Shows a diagram of all the states and transitions the system has.
 
 
 ## Contributions
@@ -52,5 +53,5 @@ This will run the full pipeline, including training, testing and user interactio
 | Bram        | Classifier 1 (Logistic Regression) + State Diagram + States & Transitions + Updated ReadMe for Part 1b             |
 | Lenny       | Classifier 2 (Naive Multinomial Bayes) + States & Transitions                                                      |
 | Shady       | Data Preprocessing + Classifier 3 (SVM) + CLI + Feedback 1A (Refactoring) + Restaurant Lookup Funtion              |
-| Dirk-Jan    | Baseline Systems +  Classifier Decision Tree + Evaluation + State Diagram + States & Transitions                   |
+| Dirk-Jan    | Baseline Systems + Classifier Decision Tree + Evaluation + State Diagram + States & Transitions + keyword matching |
 
