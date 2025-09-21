@@ -85,21 +85,21 @@ if __name__ == "__main__":
     #* --------- Classifier 1: Logistic Regression ------------
     print("\n" + DASHED_LINE + "\nClassifier 1: Logistic Regression\n" + DASHED_LINE)
 
-    # # Run with original data
+    # Run with original data
     logreg_original_model, logreg_metrics_original = run_logreg_optimization(
         X_train_orig, X_val_orig, X_test_orig,
         y_train_orig, y_val_orig, y_test_orig,
         "original"
     )
 
-    # # Run with deduplicated data
+    # Run with deduplicated data
     logreg_deduplicated_model, logreg_metrics_deduplicated = run_logreg_optimization(
         X_train_dedup, X_val_dedup, X_test_dedup,
         y_train_dedup, y_val_dedup, y_test_dedup,
         "deduplicated"
     )
 
-    # systems_overview.add_system_results("Logistic Regression", logreg_metrics_original, logreg_metrics_deduplicated)
+    systems_overview.add_system_results("Logistic Regression", logreg_metrics_original, logreg_metrics_deduplicated)
 
     #* --------- Classifier 2: Multinomial Naive Bayes ------------
     print("\n" + DASHED_LINE + "\nClassifier 2: Multinomial Naive Bayes\n" + DASHED_LINE)
@@ -126,7 +126,7 @@ if __name__ == "__main__":
         "original"
     )
 
-    # # Call the function for the deduplicated data
+    # Call the function for the deduplicated data
     svm_deduplicated_model, svm_metrics_deduplicated = run_svm_optimization(
         X_train_dedup, X_val_dedup, X_test_dedup,
         y_train_dedup, y_val_dedup, y_test_dedup,
@@ -174,16 +174,16 @@ if __name__ == "__main__":
     restaurant_searcher = RestaurantSearcher(RestaurantManager(RestaurantReader(os.path.join(os.path.dirname(__file__), './data/restaurant_info.csv')).read_restaurants()))
 
     # # --- test keyword search ---
-    # print("\n" + DASHED_LINE + "\n keyword search example:")
-    # restaurant_searcher.search("I want a cheap restaurant in the north that serves chines food", "pricerange")
-    # restaurant_searcher.search("I want a cheap restaurant in the north that serves chines food", "area")
-    # restaurant_searcher.search("I want a cheap restaurant in the north that serves chines food", "food")
-    # print(restaurant_searcher.unique_pricerange, restaurant_searcher.unique_area, restaurant_searcher.unique_food)
+    print("\n" + DASHED_LINE + "\n keyword search example:")
+    restaurant_searcher.search("I want a cheap restaurant in the north that serves chines food", "pricerange")
+    restaurant_searcher.search("I want a cheap restaurant in the north that serves chines food", "area")
+    restaurant_searcher.search("I want a cheap restaurant in the north that serves chines food", "food")
+    print(restaurant_searcher.unique_pricerange, restaurant_searcher.unique_area, restaurant_searcher.unique_food)
 
     # Start simple CLI
 
     # --- Example Run ---
-    fsm = initialize_fsm(restaurant_searcher, decision_tree_model_original)  # You can choose any trained model here
+    fsm = initialize_fsm(restaurant_searcher, decision_tree_model_original)
 
     while fsm.is_active:
         fsm.step()   
