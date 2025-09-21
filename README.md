@@ -42,7 +42,7 @@ This will run the full pipeline, including training, testing and user interactio
 
 - **`utils/csv_reader.py`**: Utility class for reading CSV files, used by the restaurant reader component.
 - **`utils/stats_retriever.py`**: Provides functionality for collecting and displaying system performance statistics and results comparison.
-- 
+
 - **`StateDiagram.jpg.py`**: Shows a diagram of all the states and transitions the system has.
 
 
