@@ -15,7 +15,6 @@ from dialogue_system.keyword_searcher import RestaurantSearcher
 from dialogue_system.restaurant_manager import RestaurantManager
 from dialogue_system.restaurant_reader import RestaurantReader
 from finite_state_machine_initializor import initialize_fsm
-from Transition_states import FSM, State, Transition, Context, Action, Inform, Affirm, Deny, Hello, Bye, NoneAct
 
 if __name__ == "__main__":
 
@@ -184,10 +183,7 @@ if __name__ == "__main__":
     # --- Example Run ---
     fsm = initialize_fsm(restaurant_searcher, decision_tree_model_original)  # You can choose any trained model here
 
+while fsm.is_active:
     fsm.step()   
-    # fsm.step(Inform(),example_user_input)  
-    # fsm.step(Inform(),example_user_input) 
-    # fsm.step(Inform(),example_user_input)  
-    fsm.step() 
 
-    start_cli(models)
+start_cli(models)

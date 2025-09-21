@@ -14,18 +14,27 @@ class Context:
     area : Optional[str] = None
     food : Optional[str] = None
     pricerange : Optional[str] = None
+    incorrect_part : Optional[str] = None
 
 
 # --- Actions ---
 class Action: pass
 
-class Inform(Action): pass
+class Acknowledge(Action): pass
 class Affirm(Action): pass
+class Bye(Action): pass
+class Confirm(Action): pass
 class Deny(Action): pass
 class Hello(Action): pass
-class Bye(Action): pass
-class NoneAct(Action): pass
-
+class Inform(Action): pass
+class Negate(Action): pass
+class Null(Action): pass
+class Repeat(Action): pass
+class Reqalts(Action): pass
+class ReqMore(Action): pass
+class Request(Action): pass
+class Restart(Action): pass
+class Thankyou(Action): pass
 
 # --- Transition ---
 class Transition:
@@ -70,13 +79,15 @@ class FSM:
         self.context = context
         self.keyword_searcher = keyword_searcher
         self.ML_model = ML_model
+        self.is_active = True
 
     def step(self):
-        print(f"[FSM] Current state: {self.current_state.name}")
 
         string_action = self.current_state.run(self)
 
         action = None
+
+        print(f"[FSM] Current state: {self.current_state.name}, Action: {string_action}")
 
         if string_action == "inform":
             action = Inform()
@@ -89,14 +100,29 @@ class FSM:
         elif string_action == "bye":
             action = Bye()
         elif string_action == "none":
-            action = NoneAct()
-        else:
-            print(f"[FSM] Unknown action returned by state: {string_action}")
-            return
+            action = Null()
+        elif string_action == "acknowledge":
+            action = Acknowledge()
+        elif string_action == "confirm":
+            action = Confirm()
+        elif string_action == "negate":
+            action = Negate()
+        elif string_action == "repeat":
+            action = Repeat()
+        elif string_action == "reqalts":
+            action = Reqalts()
+        elif string_action == "reqmore":
+            action = ReqMore()
+        elif string_action == "request":
+            action = Request()
+        elif string_action == "restart":
+            action = Restart()
+        elif string_action == "thankyou":
+            action = Thankyou()
+
 
         candidates = self.current_state.possible_transitions(action, self.context)
         if candidates:
             self.current_state = candidates[0].target
-            print(f"[FSM] Transitioning to: {self.current_state.name}")
         else:
             print("[FSM] No valid transition, staying in same state.")
