@@ -10,9 +10,10 @@ from models.logistic_regression import run_logreg_optimization
 from models.multinomial_naive_bayes import run_nb_optimization
 from models.svm import run_svm_optimization
 from models.decision_tree import run_dt_optimization
-from keyword_searcher import RestaurantSearcher
-from data.restaurant_manager import RestaurantManager
-from data.restaurant_reader import RestaurantReader
+
+from dialogue_system.keyword_searcher import RestaurantSearcher
+from dialogue_system.restaurant_manager import RestaurantManager
+from dialogue_system.restaurant_reader import RestaurantReader
 
 
 if __name__ == "__main__":

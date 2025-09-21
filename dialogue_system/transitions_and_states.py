@@ -4,11 +4,6 @@ from enum import Enum, auto
 from typing import Dict, List, Optional, Tuple
 import pandas as pd
 
-from enum import Enum 
-from dataclasses import dataclass
-
-from enum import Enum, auto
-from dataclasses import dataclass
 
 class State(Enum):
     welcome = 1

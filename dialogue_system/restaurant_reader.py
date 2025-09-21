@@ -1,5 +1,5 @@
-from data.csv_reader import CSVReader
-from data.restaurant import Restaurant
+from utils.csv_reader import CSVReader
+from dialogue_system.restaurant import Restaurant
 
 class RestaurantReader:
     def __init__(self, filepath):
