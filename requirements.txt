@@ -4,3 +4,9 @@ joblib
 scikit-learn
 scipy
 levenshtein
+faster-whisper
+edge-tts
+rich
+colorama
+pyaudio
+playsound==1.2.2

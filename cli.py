@@ -13,14 +13,14 @@ system_utterances = {
 
 from dialogue_system.finite_state_machine_initializor import initialize_fsm
 
-def start_dialogue_system(model, restaurant_manager, restaurant_searcher):
+def start_dialogue_system(model, restaurant_manager, restaurant_searcher, use_asr=False, use_tts=False):
     """
     Launches the interactive restaurant dialogue system.
     """
     print("\n" + "-"*100)
     print("Welcome to the Restaurant Dialogue System!".center(100) + "\n" + "-"*100)
     
-    fsm = initialize_fsm(restaurant_searcher, model, restaurant_manager)
+    fsm = initialize_fsm(restaurant_searcher, model, restaurant_manager, use_asr, use_tts)
     
     while fsm.is_active:
         fsm.step()
@@ -138,7 +138,16 @@ def start_cli(models, restaurant_manager, restaurant_searcher):
                     chosen_model_name = model_names[model_choice_index]
                     chosen_model = models[chosen_model_name]
                     print(f"(Using '{chosen_model_name}' for dialogue act classification)")
-                    start_dialogue_system(chosen_model, restaurant_manager, restaurant_searcher)
+
+                    # Ask user if they want to use ASR
+                    asr_choice = input("Enable ASR (Speech-to-Text)? (y/n): ").strip().lower()
+                    use_asr = asr_choice == 'y'
+
+                    # Ask user if they want to use TTS
+                    tts_choice = input("Enable TTS (Text-to-Speech)? (y/n): ").strip().lower()
+                    use_tts = tts_choice == 'y'
+
+                    start_dialogue_system(chosen_model, restaurant_manager, restaurant_searcher, use_asr, use_tts)
                 else:
                     print("Invalid choice. Returning to main menu.")
             except (ValueError, IndexError):

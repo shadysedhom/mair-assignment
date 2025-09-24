@@ -72,13 +72,15 @@ class State:
         return [t for t in self.transitions if t.is_triggered(action, context)]
 
 class FSM:
-    def __init__(self, initial_state: State, context: Context, keyword_searcher: keyword_searcher, ML_model, restaurant_manager: RestaurantManager) -> None:
+    def __init__(self, initial_state: State, context: Context, keyword_searcher: keyword_searcher, ML_model, restaurant_manager: RestaurantManager, use_asr: bool = False, use_tts: bool = False) -> None:
         self.current_state = initial_state
         self.context = context
         self.keyword_searcher = keyword_searcher
         self.ML_model = ML_model
         self.restaurant_manager = restaurant_manager
         self.is_active = True
+        self.use_asr = use_asr
+        self.use_tts = use_tts
 
     def step(self):
 
@@ -98,24 +100,25 @@ class FSM:
             print("[FSM] No valid transition, staying in same state.")
 
     def set_new_action(self, string_action):
-        if string_action == "inform":
-            action = Inform()
+        action = Null() # Default action
+        if string_action == "ack":
+            action = Acknowledge()
         elif string_action == "affirm":
             action = Affirm()
+        elif string_action == "bye":
+            action = Bye()
+        elif string_action == "confirm":
+            action = Confirm()
         elif string_action == "deny":   
             action = Deny()
         elif string_action == "hello":
             action = Hello()
-        elif string_action == "bye":
-            action = Bye()
-        elif string_action == "none":
-            action = Null()
-        elif string_action == "acknowledge":
-            action = Acknowledge()
-        elif string_action == "confirm":
-            action = Confirm()
+        elif string_action == "inform":
+            action = Inform()
         elif string_action == "negate":
             action = Negate()
+        elif string_action == "none":
+            action = Null()
         elif string_action == "repeat":
             action = Repeat()
         elif string_action == "reqalts":
@@ -128,4 +131,5 @@ class FSM:
             action = Restart()
         elif string_action == "thankyou":
             action = Thankyou()
+
         return action
