@@ -152,7 +152,15 @@ food_preference_hints = [
     "You could also choose something like 'british', 'seafood', or 'gastropub'."
 ]
 
-def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_manager: RestaurantManager, use_asr: bool, use_tts: bool) -> FSM:
+def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_manager: RestaurantManager, use_asr: bool, use_tts: bool, confirm_matches: bool = False) -> FSM:
+
+    def _tokenize(text: str):
+        return [t for t in ''.join(ch if ch.isalnum() or ch.isspace() else ' ' for ch in text.lower()).split() if t]
+
+    def _confirm_term(fsm: FSM, attribute: str, term: str) -> bool:
+        print(f"System: Did you mean '{term}' for {attribute}? (y/n)")
+        resp = get_user_input(fsm).strip().lower()
+        return resp in ["y", "yes"]
 
     def _process_preferences(fsm: FSM, text_input: str):
         """Helper to extract all preferences from a user utterance and update the context."""
@@ -161,14 +169,17 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
         pricerange_output = fsm.keyword_searcher.search(text_input, "pricerange")
 
         if area_output:
-            fsm.context.area_known = True
-            fsm.context.area = area_output
+            if not fsm.confirm_matches or _confirm_term(fsm, "area", area_output):
+                fsm.context.area_known = True
+                fsm.context.area = area_output
         if food_output:
-            fsm.context.food_known = True
-            fsm.context.food = food_output
+            if not fsm.confirm_matches or _confirm_term(fsm, "food", food_output):
+                fsm.context.food_known = True
+                fsm.context.food = food_output
         if pricerange_output:
-            fsm.context.pricerange_known = True
-            fsm.context.pricerange = pricerange_output
+            if not fsm.confirm_matches or _confirm_term(fsm, "pricerange", pricerange_output):
+                fsm.context.pricerange_known = True
+                fsm.context.pricerange = pricerange_output
         
         return area_output, food_output, pricerange_output
 
@@ -321,5 +332,7 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
 
     ctx = Context()
     fsm = FSM(welcome, ctx, keyword_searcher, ML_model, restaurant_manager, use_asr=use_asr, use_tts=use_tts)
+    # Feature toggle: confirm extracted preference matches (for non-direct matches)
+    fsm.confirm_matches = bool(confirm_matches)
 
     return fsm
