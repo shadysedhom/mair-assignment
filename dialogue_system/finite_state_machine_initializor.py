@@ -329,7 +329,7 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
         is_touristic, is_assigned_seats, has_children, is_romantic = _extra_process_preferences(fsm, text_input)
 
         if not any([is_touristic, is_assigned_seats, has_children, is_romantic]):
-            return "confirm"
+            return "affirm"
 
         fsm.context.restaurants_matches = reason_about_restaurants(
             fsm.context.restaurants_matches,

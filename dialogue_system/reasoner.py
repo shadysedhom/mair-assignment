@@ -21,7 +21,7 @@ def apply_inference(restaurant: Restaurant, touristic=None, assigned_seats=None,
             inferred[ConsequenceTypes.assigned_seats] = True
 
     if children is not None:
-        if restaurant.length_of_stay == InferenceTypes.long_stay.value or "long":
+        if restaurant.length_of_stay == InferenceTypes.long_stay.value or restaurant.length_of_stay == "long":
             inferred[ConsequenceTypes.children] = False
 
     if romantic is not None:
@@ -30,7 +30,8 @@ def apply_inference(restaurant: Restaurant, touristic=None, assigned_seats=None,
                 contradictions[ConsequenceTypes.romantic] = "Romantic status contradicts busy rule."
             inferred[ConsequenceTypes.romantic] = False
 
-        if restaurant.length_of_stay == InferenceTypes.long_stay.value:
+        if restaurant.length_of_stay == InferenceTypes.long_stay.value or restaurant.length_of_stay == "long":
+
             if ConsequenceTypes.romantic in inferred and inferred[ConsequenceTypes.romantic] == False:
                 contradictions[ConsequenceTypes.romantic] = "Romantic status contradicts long stay rule."
             inferred[ConsequenceTypes.romantic] = True
@@ -71,7 +72,7 @@ def reason_about_restaurants(
             is_recommended = False
 
         if contradictions:
-            reasoning.append("Contradictions found: " + "; ".join(contradictions))
+            reasoning.append("Contradictions found: " + "; ".join(contradictions.values()))
             print(f"Not recommended: {restaurant.name}")
         elif not is_recommended:
             print(f"Not recommended: {restaurant.name}")
