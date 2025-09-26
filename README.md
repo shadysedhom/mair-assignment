@@ -55,4 +55,3 @@ This will run the full pipeline, including training, testing and user interactio
 | Shady       | Data Preprocessing + Classifier 3 (SVM) + CLI 1A/1B/1C + Feedback 1A (Refactoring) + Restaurant Lookup Function + State Debugging & Edge Cases + ASR & TTS |
 | Dirk-Jan    | Baseline Systems + Classifier Decision Tree + Evaluation + State Diagram + States & Transitions + keyword matching                          |
 
-
