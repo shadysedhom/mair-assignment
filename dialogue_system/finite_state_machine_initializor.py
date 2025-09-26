@@ -15,6 +15,8 @@ from playsound import playsound
 from dialogue_system.finite_state_machine import FSM, State, Transition, Context, Inform, Affirm, Deny, Hello, Null,Negate
 from dialogue_system import keyword_searcher
 from dialogue_system.restaurant_manager import RestaurantManager
+from dialogue_system.reasoner import reason_about_restaurants, apply_inference
+from dialogue_system.types import SearchThemes
 
 # --- ASR and TTS Helper Functions ---
 
@@ -164,24 +166,50 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
 
     def _process_preferences(fsm: FSM, text_input: str):
         """Helper to extract all preferences from a user utterance and update the context."""
-        area_output = fsm.keyword_searcher.search(text_input, "area")
-        food_output = fsm.keyword_searcher.search(text_input, "food")
-        pricerange_output = fsm.keyword_searcher.search(text_input, "pricerange")
+        area_output = fsm.keyword_searcher.search(text_input, SearchThemes.area)
+        food_output = fsm.keyword_searcher.search(text_input, SearchThemes.food)
+        pricerange_output = fsm.keyword_searcher.search(text_input, SearchThemes.pricerange)
 
         if area_output:
-            if not fsm.confirm_matches or _confirm_term(fsm, "area", area_output):
+            if not fsm.context.restaurants_matches or _confirm_term(fsm, "area", area_output):
                 fsm.context.area_known = True
                 fsm.context.area = area_output
         if food_output:
-            if not fsm.confirm_matches or _confirm_term(fsm, "food", food_output):
+            if not fsm.context.restaurants_matches or _confirm_term(fsm, "food", food_output):
                 fsm.context.food_known = True
                 fsm.context.food = food_output
         if pricerange_output:
-            if not fsm.confirm_matches or _confirm_term(fsm, "pricerange", pricerange_output):
+            if not fsm.context.restaurants_matches or _confirm_term(fsm, "pricerange", pricerange_output):
                 fsm.context.pricerange_known = True
                 fsm.context.pricerange = pricerange_output
         
         return area_output, food_output, pricerange_output
+    
+    def _extra_process_preferences(fsm: FSM, text_input: str):
+        """Helper to extract all extra preferences from a user utterance and update the context."""
+        touristic_output = fsm.keyword_searcher.search(text_input, SearchThemes.touristic)
+        assigned_seats_output = fsm.keyword_searcher.search(text_input, SearchThemes.assigned_seats)
+        children_output = fsm.keyword_searcher.search(text_input, SearchThemes.children)
+        romantic_output = fsm.keyword_searcher.search(text_input, SearchThemes.romantic)
+
+        is_touristic = None
+        is_assigned_seats = None
+        has_children = None
+        is_romantic = None
+
+        if touristic_output:
+            if not fsm.context.restaurants_matches or _confirm_term(fsm, "touristic", touristic_output):
+                is_touristic = True
+        if assigned_seats_output:
+            if not fsm.context.restaurants_matches or _confirm_term(fsm, "assigned seats", assigned_seats_output):
+                is_assigned_seats = True
+        if children_output:
+            if not fsm.context.restaurants_matches or _confirm_term(fsm, "children", children_output):
+                has_children = True
+        if romantic_output:
+            if not fsm.context.restaurants_matches or _confirm_term(fsm, "romantic", romantic_output):
+                is_romantic = True
+        return is_touristic, is_assigned_seats, has_children, is_romantic
 
     def welcome_action(fsm: FSM):
         output_system_response(fsm, "Welcome! Let's start. What kind of restaurant are you looking for? Please inform me about your preferences (area, food, price range).")
@@ -224,18 +252,13 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
         return fsm.ML_model.predict([text_input])[0]
 
     def suggest_restaurant_action(fsm: FSM):
-        matches = fsm.restaurant_manager.find_restaurants(
-            area=fsm.context.area,
-            pricerange=fsm.context.pricerange,
-            food=fsm.context.food
-        )
 
-        if not matches:
+        if not fsm.context.restaurants_matches:
             output_system_response(fsm, "I'm sorry, there are no restaurants that match your request.")
             return "none" 
 
-        suggestion = random.choice(matches)
-        fsm.context.remaining_matches = [r for r in matches if r != suggestion]
+        suggestion = random.choice(fsm.context.restaurants_matches)
+        fsm.context.restaurants_matches = [r for r in fsm.context.restaurants_matches if r != suggestion]
 
         output_system_response(fsm, f"{suggestion.name} is a nice place in the {suggestion.area} part of town serving {suggestion.food} food in the {suggestion.pricerange} price range.")
         return "inform"
@@ -279,6 +302,44 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
         output_system_response(fsm, "Goodbye!")
         fsm.is_active = False
         return "bye"
+    
+    def show_possible_restaurants_action(fsm: FSM):
+        matches = fsm.restaurant_manager.find_restaurants(
+            area=fsm.context.area,
+            pricerange=fsm.context.pricerange,
+            food=fsm.context.food
+        )
+
+        fsm.context.restaurants_matches = matches
+
+        if not matches:
+            output_system_response(fsm, "I'm sorry, there are no restaurants that match your request.")
+            return "none" 
+        else:
+            output_system_response(fsm, f"There are {len(matches)} restaurants that match your preferences:")
+            for r in matches:
+                output_system_response(fsm, f"- {r.name}: {r.food} (food), {r.pricerange} (price range), {r.area} (area), {r.food_quality} (food quality), {r.crowdedness} (crowdedness), {r.length_of_stay} (length of stay)")
+
+        return "inform"     
+    
+    def ask_extra_preference_action(fsm: FSM):
+        output_system_response(fsm, "Would you like to specify any extra preferences to narrow down the options? (touristic, assigned seats, romantic, children)")
+        text_input = get_user_input(fsm)
+
+        is_touristic, is_assigned_seats, has_children, is_romantic = _extra_process_preferences(fsm, text_input)
+
+        if not any([is_touristic, is_assigned_seats, has_children, is_romantic]):
+            return "confirm"
+
+        fsm.context.restaurants_matches = reason_about_restaurants(
+            fsm.context.restaurants_matches,
+            touristic=is_touristic,
+            assigned_seats=is_assigned_seats,
+            children=has_children,
+            romantic=is_romantic
+        )
+
+        return "inform"
 
     welcome = State("welcome", welcome_action)
     ask_area = State("ask_area", ask_area_action)
@@ -288,34 +349,34 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
     ask_conformation = State("ask_conformation", ask_conformation_action)
     ask_part_incorrect = State("ask_part_incorrect", ask_part_incorrect_action)
     ask_preference = State("ask_to_express_preference", ask_preference_action)
+    show_possible_restaurants = State("show_possible_restaurants", show_possible_restaurants_action)
+    ask_extra_preference = State("ask_extra_preference", ask_extra_preference_action)   
     bye = State("bye", bye_action)
 
     # Reordered transitions for welcome state
-    welcome.add_transition(Transition(suggest_restaurant, lambda a, c: isinstance(a, (Inform, Hello, Null)) and c.area_known and c.food_known and c.pricerange_known))
+    welcome.add_transition(Transition(show_possible_restaurants, lambda a, c: isinstance(a, (Inform, Hello, Null)) and c.area_known and c.food_known and c.pricerange_known))
     welcome.add_transition(Transition(ask_food, lambda a, c: isinstance(a, (Inform, Hello, Null)) and not c.food_known))
     welcome.add_transition(Transition(ask_pricerange, lambda a, c: isinstance(a, (Inform, Hello, Null)) and not c.pricerange_known))
     welcome.add_transition(Transition(ask_area, lambda a, c: isinstance(a, (Inform, Hello, Null)) and not c.area_known))
 
     # Reordered transitions for ask_area state
-    ask_area.add_transition(Transition(suggest_restaurant, lambda a, c: isinstance(a, Inform) and c.area_known and c.food_known and c.pricerange_known))
+    ask_area.add_transition(Transition(show_possible_restaurants, lambda a, c: isinstance(a, Inform) and c.area_known and c.food_known and c.pricerange_known))
     ask_area.add_transition(Transition(ask_food, lambda a, c: isinstance(a, Inform) and c.area_known and not c.food_known))
     ask_area.add_transition(Transition(ask_pricerange, lambda a, c: isinstance(a, Inform) and c.area_known and not c.pricerange_known))
     ask_area.add_transition(Transition(ask_area, lambda a, c: isinstance(a, Inform) and not c.area_known))
 
     # Reordered transitions for ask_food state
-    ask_food.add_transition(Transition(suggest_restaurant, lambda a, c: isinstance(a, Inform) and c.area_known and c.food_known and c.pricerange_known))
+    ask_food.add_transition(Transition(show_possible_restaurants, lambda a, c: isinstance(a, Inform) and c.area_known and c.food_known and c.pricerange_known))
     ask_food.add_transition(Transition(ask_pricerange, lambda a, c: isinstance(a, Inform) and c.food_known and not c.pricerange_known))
     ask_food.add_transition(Transition(ask_area, lambda a, c: isinstance(a, Inform) and c.food_known and not c.area_known))
     ask_food.add_transition(Transition(ask_food, lambda a, c: isinstance(a, Inform) and not c.food_known))
 
     # Reordered transitions for ask_pricerange state
-    ask_pricerange.add_transition(Transition(suggest_restaurant, lambda a, c: isinstance(a, Inform) and c.area_known and c.food_known and c.pricerange_known))
+    ask_pricerange.add_transition(Transition(show_possible_restaurants, lambda a, c: isinstance(a, Inform) and c.area_known and c.food_known and c.pricerange_known))
     ask_pricerange.add_transition(Transition(ask_food, lambda a, c: isinstance(a, Inform) and c.pricerange_known and not c.food_known))
     ask_pricerange.add_transition(Transition(ask_area, lambda a, c: isinstance(a, Inform) and c.pricerange_known and not c.area_known))
     ask_pricerange.add_transition(Transition(ask_pricerange, lambda a, c: isinstance(a, Inform) and not c.pricerange_known))
 
-    suggest_restaurant.add_transition(Transition(ask_conformation, lambda a, c: isinstance(a, Inform)))
-    suggest_restaurant.add_transition(Transition(ask_preference, lambda a, c: isinstance(a, Null)))
     ask_conformation.add_transition(Transition(bye, lambda a, c: isinstance(a, Affirm)))
     ask_conformation.add_transition(Transition(ask_part_incorrect, lambda a, c: isinstance(a, (Deny, Negate))))
     ask_conformation.add_transition(Transition(ask_conformation, lambda a, c: not isinstance(a, (Affirm, Deny))))
@@ -325,10 +386,26 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
     ask_part_incorrect.add_transition(Transition(ask_food, lambda a, c: isinstance(a, Inform) and c.incorrect_part == "food"))
     ask_part_incorrect.add_transition(Transition(ask_pricerange, lambda a, c: isinstance(a, Inform) and c.incorrect_part == "pricerange"))
 
-    ask_preference.add_transition(Transition(suggest_restaurant, lambda a, c: isinstance(a, (Inform, Hello, Null)) and c.area_known and c.food_known and c.pricerange_known))
+    ask_preference.add_transition(Transition(show_possible_restaurants, lambda a, c: isinstance(a, (Inform, Hello, Null)) and c.area_known and c.food_known and c.pricerange_known))
     ask_preference.add_transition(Transition(ask_food, lambda a, c: isinstance(a, (Inform, Hello, Null)) and not c.food_known))
     ask_preference.add_transition(Transition(ask_pricerange, lambda a, c: isinstance(a, (Inform, Hello, Null)) and not c.pricerange_known))
     ask_preference.add_transition(Transition(ask_area, lambda a, c: isinstance(a, (Inform, Hello, Null)) and not c.area_known))
+
+    show_possible_restaurants.add_transition(
+    Transition(ask_preference, lambda a, c: len(c.restaurants_matches) == 0)
+    )
+    show_possible_restaurants.add_transition(
+        Transition(suggest_restaurant, lambda a, c: len(c.restaurants_matches) == 1)
+    )
+    show_possible_restaurants.add_transition(
+        Transition(ask_extra_preference, lambda a, c: len(c.restaurants_matches) > 1)
+    )
+
+    ask_extra_preference.add_transition(Transition(suggest_restaurant, lambda a, c: isinstance(a, Inform)))
+    ask_extra_preference.add_transition(Transition(suggest_restaurant, lambda a, c: isinstance(a, Affirm)))
+
+    suggest_restaurant.add_transition(Transition(ask_conformation, lambda a, c: isinstance(a, Inform)))
+    suggest_restaurant.add_transition(Transition(ask_preference, lambda a, c: isinstance(a, Null)))
 
     ctx = Context()
     fsm = FSM(welcome, ctx, keyword_searcher, ML_model, restaurant_manager, use_asr=use_asr, use_tts=use_tts)

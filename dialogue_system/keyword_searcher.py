@@ -2,6 +2,7 @@ import re
 import Levenshtein
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from dialogue_system.types import SearchThemes
 
 def preprocess(text): 
     text = text.lower() 
@@ -25,32 +26,50 @@ class RestaurantSearcher:
         self.unique_pricerange = None
         self.unique_area = None
         self.unique_food = None
+        self.unique_touristic = None
+        self.unique_assigned_seats = None
+        self.unique_children = None
+        self.unique_romantic = None
         self.keywords = {
-            "food": ["food", "restaurant", "serves"],
-            "area": ["area", "part", "region", "side"],
-            "pricerange": ["price", "pricerange", "cost"]
+            SearchThemes.food: ["food", "restaurant", "serves"],
+            SearchThemes.area: ["area", "part", "region", "side"],
+            SearchThemes.pricerange: ["price", "pricerange", "cost"],
+            SearchThemes.touristic: ["touristic", "tourist", "popular", "famous"],
+            SearchThemes.assigned_seats: ["assigned seats", "seating", "seat", "assign"],
+            SearchThemes.children: ["children", "kids", "child", "family"], 
+            SearchThemes.romantic: ["romantic", "romance", "couple", "date"],
         }
 
     def search(self, utterance, attribute, window_size=2):
-        if attribute not in ["pricerange", "area", "food"]:
-            raise ValueError("Attribute must be one of 'pricerange', 'area', or 'food'.")
+        if attribute not in [SearchThemes.pricerange, SearchThemes.area, SearchThemes.food, SearchThemes.touristic, SearchThemes.assigned_seats, SearchThemes.children, SearchThemes.romantic]:
+            raise ValueError("Attribute must be one of 'pricerange', 'area', or 'food', 'touristic', 'assigned_seats', 'children', 'romantic'.")
 
-        domain_list = self.restaurant_manager.get_labels(attribute)
         tokens = preprocess(utterance)
 
-        # --- Direct Match Check first ---
+        domain_list = []
+
+        if attribute in [SearchThemes.pricerange, SearchThemes.area, SearchThemes.food]:
+            domain_list = self.restaurant_manager.get_labels(attribute.value)
+        else:
+            if attribute == SearchThemes.touristic:
+                domain_list = SearchThemes.touristic.value.split()
+            elif attribute == SearchThemes.assigned_seats:
+                domain_list = SearchThemes.assigned_seats.value.split()
+            elif attribute == SearchThemes.children:
+                domain_list = SearchThemes.children.value.split()
+            elif attribute == SearchThemes.romantic:
+                domain_list = SearchThemes.romantic.value.split()
+
         for token in tokens:
-            # Convert domain_list terms to lower for comparison
             lower_domain_list = [d.lower() for d in domain_list]
             if token.lower() in lower_domain_list:
-                # Found a direct match, update and return
-                if attribute == "food":
+                if attribute == SearchThemes.food:
                     self.unique_food = token
-                elif attribute == "area":
+                elif attribute == SearchThemes.area:
                     self.unique_area = token
-                elif attribute == "pricerange":
+                elif attribute == SearchThemes.pricerange:
                     self.unique_pricerange = token
-                return token # Return the directly matched term
+                return token
 
         context_words = set()
         for i, token in enumerate(tokens):
@@ -72,24 +91,40 @@ class RestaurantSearcher:
                     best_match = term
 
         if best_match and min_distance <= 3:
-            if attribute == "food":
+            if attribute == SearchThemes.food:
                 self.unique_food = best_match
-            elif attribute == "area":
+            elif attribute == SearchThemes.area:
                 self.unique_area = best_match
-            elif attribute == "pricerange":
+            elif attribute == SearchThemes.pricerange:
                 self.unique_pricerange = best_match
+            elif attribute == SearchThemes.touristic:
+                self.unique_touristic = best_match
+            elif attribute == SearchThemes.assigned_seats:
+                self.unique_assigned_seats = best_match
+            elif attribute == SearchThemes.children:
+                self.unique_children = best_match
+            elif attribute == SearchThemes.romantic:
+                self.unique_romantic = best_match
             return best_match
 
         ranked = tfidf_ranking(utterance.lower(), domain_list)
         if ranked:
             top_term, score = ranked[0]
             if score >= 0.5:
-                if attribute == "food":
+                if attribute == SearchThemes.food:
                     self.unique_food = top_term
-                elif attribute == "area":
+                elif attribute == SearchThemes.area:
                     self.unique_area = top_term
-                elif attribute == "pricerange":
+                elif attribute == SearchThemes.pricerange:
                     self.unique_pricerange = top_term
+                elif attribute == SearchThemes.touristic:
+                    self.unique_touristic = top_term
+                elif attribute == SearchThemes.assigned_seats:
+                    self.unique_assigned_seats = top_term
+                elif attribute == SearchThemes.children:
+                    self.unique_children = top_term
+                elif attribute == SearchThemes.romantic:
+                    self.unique_romantic = top_term
                 return top_term
             
         return None
