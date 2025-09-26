@@ -401,6 +401,10 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
         Transition(ask_extra_preference, lambda a, c: len(c.restaurants_matches) > 1)
     )
 
+    ask_extra_preference.add_transition(
+    Transition(ask_preference, lambda a, c: len(c.restaurants_matches) == 0, print("No matches found after applying extra preferences."))
+    )
+
     ask_extra_preference.add_transition(Transition(suggest_restaurant, lambda a, c: isinstance(a, Inform)))
     ask_extra_preference.add_transition(Transition(suggest_restaurant, lambda a, c: isinstance(a, Affirm)))
 
