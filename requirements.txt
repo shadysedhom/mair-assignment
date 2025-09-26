@@ -8,5 +8,5 @@ faster-whisper
 edge-tts
 rich
 colorama
-pyaudio
+# pyaudio  # Optional (requires PortAudio). Install only if you need ASR.
 playsound==1.2.2

@@ -3,8 +3,13 @@ import asyncio
 import time
 import wave
 import threading
-import pyaudio
-import audioop
+try:
+    import pyaudio
+    import audioop
+    PYAUDIO_AVAILABLE = True
+except ImportError:
+    PYAUDIO_AVAILABLE = False
+    # Fall back to text input when PyAudio/PortAudio is unavailable
 import os
 from faster_whisper import WhisperModel
 import edge_tts
@@ -25,7 +30,7 @@ init(autoreset=True)
 
 # ASR settings
 CHUNK = 1024
-FORMAT = pyaudio.paInt16
+FORMAT = pyaudio.paInt16 if PYAUDIO_AVAILABLE else None
 CHANNELS = 1
 RATE = 16000
 SILENCE_THRESHOLD = 300
@@ -40,7 +45,7 @@ VOICE = "en-US-AvaNeural"
 
 def get_user_input(fsm: FSM) -> str:
     """Gets user input from microphone if ASR is enabled, otherwise from text prompt."""
-    if not fsm.use_asr:
+    if not fsm.use_asr or not PYAUDIO_AVAILABLE:
         return input("You: ")
 
     temp_wav_file = os.path.join(AUDIO_DIR, f"temp_recording_{time.time()}.wav")
@@ -260,7 +265,11 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
         suggestion = random.choice(fsm.context.restaurants_matches)
         fsm.context.restaurants_matches = [r for r in fsm.context.restaurants_matches if r != suggestion]
 
-        output_system_response(fsm, f"{suggestion.name} is a nice place in the {suggestion.area} part of town serving {suggestion.food} food in the {suggestion.pricerange} price range.")
+        output_system_response(
+            fsm,
+            f"{suggestion.name} is a nice place in the {suggestion.area} part of town serving {suggestion.food} food in the {suggestion.pricerange} price range. "
+            f"Address: {suggestion.addr}. Phone: {suggestion.phone}."
+        )
         return "inform"
     
     def ask_conformation_action(fsm: FSM): 
