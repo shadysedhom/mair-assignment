@@ -16,7 +16,7 @@ class Context:
     food : Optional[str] = None
     pricerange : Optional[str] = None
     incorrect_part : Optional[str] = None
-    remaining_matches: List = field(default_factory=list)
+    restaurants_matches: List = field(default_factory=list)
 
 
 # --- Actions ---
