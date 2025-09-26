@@ -391,6 +391,14 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
     ask_preference.add_transition(Transition(ask_pricerange, lambda a, c: isinstance(a, (Inform, Hello, Null)) and not c.pricerange_known))
     ask_preference.add_transition(Transition(ask_area, lambda a, c: isinstance(a, (Inform, Hello, Null)) and not c.area_known))
 
+    def no_matches_condition(a, c):
+        print(f"{len(c.restaurants_matches)} restaurants match the preferences.")
+        return len(c.restaurants_matches) == 0
+
+    ask_extra_preference.add_transition(
+        Transition(ask_preference, no_matches_condition)
+    )
+
     show_possible_restaurants.add_transition(
     Transition(ask_preference, lambda a, c: len(c.restaurants_matches) == 0)
     )
