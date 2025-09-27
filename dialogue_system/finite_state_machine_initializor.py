@@ -214,7 +214,7 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
     def welcome_action(fsm: FSM):
         output_system_response(fsm, "Welcome! Let's start. What kind of restaurant are you looking for? Please inform me about your preferences (area, food, price range).")
         text = get_user_input(fsm)
-        area_found, food_found, pricerange_found = _process_preferences(fsm, text)
+        _process_preferences(fsm, text)
         return fsm.ML_model.predict([text])[0]
 
     def ask_area_action(fsm: FSM):

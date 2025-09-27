@@ -13,68 +13,78 @@ from utils.stats_retriever import get_stats
 def run_nb_optimization(X_train, y_train, X_val, y_val, X_test, y_test, data_type_name, n_trials=50):
     """
     Performs hyperparameter optimization using Optuna for a Multinomial Naive Bayes classifier.
-    Caches the Optuna study to a local file to avoid re-computation.
+    Caches the Optuna study and the final trained model to avoid re-computation.
     """
     print(f"\n--- Running Multinomial Naive Bayes for '{data_type_name}' data ---")
 
-    # Define filename for cached study
+    model_filename = f"nb_model_{data_type_name}.pkl"
+    model_filepath = os.path.join(os.path.dirname(__file__), model_filename)
     study_filename = f"optuna_study_nb_{data_type_name}.pkl"
     study_filepath = os.path.join("model_tuning", study_filename)
     model_type = "Multinomial Naive Bayes"
 
-    # Vectorize text data using the same settings as before
-    vectorizer = CountVectorizer(lowercase=True, ngram_range=(1, 2), min_df=2)
-    X_train_bow = vectorizer.fit_transform(X_train)
-    X_val_bow = vectorizer.transform(X_val)
-
-    # Caching logic: Check if study exists
-    if os.path.exists(study_filepath):
-        print(f"Loading existing study for {model_type} on {data_type_name} data from {study_filepath}")
-        study = joblib.load(study_filepath)
+    # Check if the final trained model already exists
+    if os.path.exists(model_filepath):
+        print(f"Loading pre-trained model from {model_filepath}")
+        pipeline = joblib.load(model_filepath)
     else:
-        print(f"No cached study found. Creating a new Optuna study for {model_type} on {data_type_name} data.")
+        print(f"No pre-trained model found at {model_filepath}. Training a new one.")
+        # Vectorize text data using the same settings as before
+        vectorizer = CountVectorizer(lowercase=True, ngram_range=(1, 2), min_df=2)
+        X_train_bow = vectorizer.fit_transform(X_train)
+        X_val_bow = vectorizer.transform(X_val)
 
-        def objective(trial):
-            """Objective function for Optuna to optimize."""
-            # Define hyperparameter search space for the classifier's alpha
-            alpha = trial.suggest_float('alpha', 1e-2, 10.0, log=True)
+        # Caching logic: Check if study exists
+        if os.path.exists(study_filepath):
+            print(f"Loading existing study for {model_type} on {data_type_name} data from {study_filepath}")
+            study = joblib.load(study_filepath)
+        else:
+            print(f"No cached study found. Creating a new Optuna study for {model_type} on {data_type_name} data.")
 
-            # Instantiate model
-            clf = MultinomialNB(alpha=alpha)
-            
-            # Fit on (transformed) train set
-            clf.fit(X_train_bow, y_train)
+            def objective(trial):
+                """Objective function for Optuna to optimize."""
+                # Define hyperparameter search space for the classifier's alpha
+                alpha = trial.suggest_float('alpha', 1e-2, 10.0, log=True)
 
-            # Optimize on val set
-            y_pred = clf.predict(X_val_bow)
+                # Instantiate model
+                clf = MultinomialNB(alpha=alpha)
+                
+                # Fit on (transformed) train set
+                clf.fit(X_train_bow, y_train)
 
-            return accuracy_score(y_val, y_pred)
+                # Optimize on val set
+                y_pred = clf.predict(X_val_bow)
 
-        study = optuna.create_study(direction='maximize')
-        print(f"Running Optuna optimization for {data_type_name} data with {n_trials} trials...")
-        study.optimize(objective, n_trials=n_trials)
+                return accuracy_score(y_val, y_pred)
 
-        # Save the completed study
-        joblib.dump(study, study_filepath)
-        print(f"Saved new study to {study_filepath}")
+            study = optuna.create_study(direction='maximize')
+            print(f"Running Optuna optimization for {data_type_name} data with {n_trials} trials...")
+            study.optimize(objective, n_trials=n_trials)
 
-    print(f"\nBest parameters found for {data_type_name} data: {study.best_params}")
+            # Save the completed study
+            joblib.dump(study, study_filepath)
+            print(f"Saved new study to {study_filepath}")
 
-    # Retrain the best model on the combined training and validation set
-    print("Retraining best model on combined train and validation data...")
+        print(f"\nBest parameters found for {data_type_name} data: {study.best_params}")
 
-    # Create a new pipeline with the best found hyperparameters
-    pipeline = Pipeline([
-        ("bow", CountVectorizer(lowercase=True, ngram_range=(1, 2), min_df=2)),
-        ("clf", MultinomialNB(**study.best_params))
-    ])
+        # Retrain the best model on the combined training and validation set
+        print("Retraining best model on combined train and validation data...")
 
-    # Combine the raw text data for final training
-    X_train_val = pd.concat([pd.Series(X_train), pd.Series(X_val)])
-    y_train_val = pd.concat([y_train, y_val])
+        # Create a new pipeline with the best found hyperparameters
+        pipeline = Pipeline([
+            ("bow", CountVectorizer(lowercase=True, ngram_range=(1, 2), min_df=2)),
+            ("clf", MultinomialNB(**study.best_params))
+        ])
 
-    # Fit the entire pipeline on the combined raw text data
-    pipeline.fit(X_train_val, y_train_val)
+        # Combine the raw text data for final training
+        X_train_val = pd.concat([pd.Series(X_train), pd.Series(X_val)])
+        y_train_val = pd.concat([y_train, y_val])
+
+        # Fit the entire pipeline on the combined raw text data
+        pipeline.fit(X_train_val, y_train_val)
+
+        print(f"Saving newly trained model to {model_filepath}")
+        joblib.dump(pipeline, model_filepath)
 
     # Finally, evaluate the pipeline on the test set
     print(f"Evaluating best model on {data_type_name} data test set...")
