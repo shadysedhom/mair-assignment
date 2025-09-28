@@ -139,7 +139,11 @@ async def _generate_and_play_tts(text: str):
 
 def output_system_response(fsm: FSM, text: str):
     """Outputs the system's response as text and optionally as speech."""
-    print(f"System: {text}")
+    if fsm.use_delay:
+        time.sleep(random.uniform(1.0, 2.0))  # Random delay between 0.5 and 1.5 seconds
+        print(f"System: {text}")
+    else:
+        print(f"System: {text}")
     if fsm.use_tts:
         try:
             asyncio.run(_generate_and_play_tts(text))
@@ -154,7 +158,7 @@ food_preference_hints = [
     "You could also choose something like 'british', 'seafood', or 'gastropub'."
 ]
 
-def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_manager: RestaurantManager, use_asr: bool, use_tts: bool, confirm_matches: bool = False) -> FSM:
+def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_manager: RestaurantManager, use_asr: bool, use_tts: bool, confirm_matches: bool = False, use_delay: bool = False) -> FSM:
 
     def _tokenize(text: str):
         return [t for t in ''.join(ch if ch.isalnum() or ch.isspace() else ' ' for ch in text.lower()).split() if t]
@@ -416,7 +420,7 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
     suggest_restaurant.add_transition(Transition(ask_preference, lambda a, c: isinstance(a, Null)))
 
     ctx = Context()
-    fsm = FSM(welcome, ctx, keyword_searcher, ML_model, restaurant_manager, use_asr=use_asr, use_tts=use_tts)
+    fsm = FSM(welcome, ctx, keyword_searcher, ML_model, restaurant_manager, use_asr=use_asr, use_tts=use_tts, use_delay=use_delay)
     # Feature toggle: confirm extracted preference matches (for non-direct matches)
     fsm.confirm_matches = bool(confirm_matches)
 

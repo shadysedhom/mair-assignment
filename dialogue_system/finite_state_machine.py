@@ -72,7 +72,7 @@ class State:
         return [t for t in self.transitions if t.is_triggered(action, context)]
 
 class FSM:
-    def __init__(self, initial_state: State, context: Context, keyword_searcher: keyword_searcher, ML_model, restaurant_manager: RestaurantManager, use_asr: bool = False, use_tts: bool = False) -> None:
+    def __init__(self, initial_state: State, context: Context, keyword_searcher: keyword_searcher, ML_model, restaurant_manager: RestaurantManager, use_asr: bool = False, use_tts: bool = False, use_delay: bool = False) -> None:
         self.current_state = initial_state
         self.context = context
         self.keyword_searcher = keyword_searcher
@@ -81,6 +81,7 @@ class FSM:
         self.is_active = True
         self.use_asr = use_asr
         self.use_tts = use_tts
+        self.use_delay = use_delay
 
     def step(self):
 

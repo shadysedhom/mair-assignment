@@ -1,4 +1,5 @@
 
+from dialogue_system.reasoner import reason_about_restaurants
 # A dictionary to hold the templates for system utterances.
 system_utterances = {
     "welcome": "Hello, welcome to the Cambridge restaurant system! You can ask for restaurants by area, price range or food type. How may I help you?",
@@ -13,14 +14,14 @@ system_utterances = {
 
 from dialogue_system.finite_state_machine_initializor import initialize_fsm
 
-def start_dialogue_system(model, restaurant_manager, restaurant_searcher, use_asr=False, use_tts=False, confirm_matches=False):
+def start_dialogue_system(model, restaurant_manager, restaurant_searcher, use_asr=False, use_tts=False, confirm_matches=False, use_delay=False):
     """
     Launches the interactive restaurant dialogue system.
     """
     print("\n" + "-"*100)
     print("Welcome to the Restaurant Dialogue System!".center(100) + "\n" + "-"*100)
     
-    fsm = initialize_fsm(restaurant_searcher, model, restaurant_manager, use_asr, use_tts, confirm_matches)
+    fsm = initialize_fsm(restaurant_searcher, model, restaurant_manager, use_asr, use_tts, confirm_matches, use_delay)
     
     while fsm.is_active:
         fsm.step()
@@ -151,7 +152,29 @@ def start_cli(models, restaurant_manager, restaurant_searcher):
                     cf_choice = input("Confirm preference matches? (y/n): ").strip().lower()
                     confirm_matches = cf_choice == 'y'
 
-                    start_dialogue_system(chosen_model, restaurant_manager, restaurant_searcher, use_asr, use_tts, confirm_matches)
+                    # Ask user if they want to have a max number of recommendations
+                    max_choice = input("Limit number of recommendations? (y/n): ").strip().lower()
+                    if max_choice == 'y':
+                        while True:
+                            max_num_str = input("Enter maximum number of recommendations: ").strip()
+                            try:
+                                num = int(max_num_str)
+                                if num > 0:
+                                    reason_about_restaurants.max_recommendations = num
+                                    break
+                                else:
+                                    print("Please enter a positive integer.")
+                            except ValueError:
+                                print("Invalid input. Please enter a valid integer.")
+                    else:
+                        reason_about_restaurants.max_recommendations = None
+
+                    # Ask user if they want to a delay in the output response to make the dialogue more natural
+                    delay_choice = input("Enable a delay in the output response to have a more natural dialogue? (y/n): ").strip().lower()
+                    use_delay = delay_choice == 'y'
+                                    
+
+                    start_dialogue_system(chosen_model, restaurant_manager, restaurant_searcher, use_asr, use_tts, confirm_matches, use_delay)
                 else:
                     print("Invalid choice. Returning to main menu.")
             except (ValueError, IndexError):

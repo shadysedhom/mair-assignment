@@ -44,7 +44,8 @@ def reason_about_restaurants(
     touristic=None,
     assigned_seats=None,
     children=None,
-    romantic=None
+    romantic=None,
+    max_recommendations=None
 ):
     possible_recommendations = []
     for restaurant in candidates:
@@ -84,6 +85,9 @@ def reason_about_restaurants(
         print("Reasoning:")
         for r in reasoning:
             print(f"- {r}")
+            possible_recommendations.append(restaurant)
+
+        if len(possible_recommendations) < max_recommendations and is_recommended:
             possible_recommendations.append(restaurant)
         print("\n" + "-"*40 + "\n")
     return possible_recommendations
