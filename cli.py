@@ -160,14 +160,12 @@ def start_cli(models, restaurant_manager, restaurant_searcher):
                             try:
                                 num = int(max_num_str)
                                 if num > 0:
-                                    reason_about_restaurants.max_recommendations = num
+                                    restaurant_manager.max_recommendations = num
                                     break
                                 else:
                                     print("Please enter a positive integer.")
                             except ValueError:
                                 print("Invalid input. Please enter a valid integer.")
-                    else:
-                        reason_about_restaurants.max_recommendations = None
 
                     # Ask user if they want to a delay in the output response to make the dialogue more natural
                     delay_choice = input("Enable a delay in the output response to have a more natural dialogue? (y/n): ").strip().lower()

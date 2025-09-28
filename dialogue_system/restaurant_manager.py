@@ -9,6 +9,7 @@ class RestaurantManager:
         self.unique_priceranges = self._get_unique(SearchThemes.pricerange.value)
         self.unique_areas = self._get_unique(SearchThemes.area.value)
         self.unique_foods = self._get_unique(SearchThemes.food.value)
+        self.max_recommendations = 1
 
     def _get_unique(self, attribute):
         """Helper method to get unique values for a given Restaurant attribute"""

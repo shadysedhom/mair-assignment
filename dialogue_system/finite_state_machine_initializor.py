@@ -299,7 +299,7 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
     
         output_system_response(fsm, "Please express your preferences again (area, food, price range).")
         text_input = get_user_input(fsm)
-        area_found, food_found, pricerange_found = _process_preferences(fsm, text_input)
+        _process_preferences(fsm, text_input)
         return fsm.ML_model.predict([text_input])[0]
 
     def bye_action(fsm: FSM): 
@@ -340,7 +340,8 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
             touristic=is_touristic,
             assigned_seats=is_assigned_seats,
             children=has_children,
-            romantic=is_romantic
+            romantic=is_romantic,
+            max_recommendations=fsm.restaurant_manager.max_recommendations
         )
 
         return "inform"
