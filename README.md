@@ -1,6 +1,6 @@
-# Methods in AI Research | Dialogue Act Classifier
+# Methods in AI Research | Dialogue System
 
-This project implements and evaluates several machine learning models for classifying dialogue acts in a restaurant-domain dataset.
+This project is a comprehensive, interactive dialogue system for restaurant recommendations. It features an evaluation of multiple machine learning models for dialogue act classification, a state-based dialogue manager, and advanced configurable features, including speech-to-text (ASR) and text-to-speech (TTS) capabilities.
 
 ## Install requirements
 ```bash
