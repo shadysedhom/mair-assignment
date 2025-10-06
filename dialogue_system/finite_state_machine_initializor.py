@@ -174,15 +174,15 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
         food_output = fsm.keyword_searcher.search(text_input, SearchThemes.food)
         pricerange_output = fsm.keyword_searcher.search(text_input, SearchThemes.pricerange)
 
-        if area_output:
+        if area_output and fsm.context.area == None:
             if not fsm.context.restaurants_matches or _confirm_term(fsm, "area", area_output):
                 fsm.context.area_known = True
                 fsm.context.area = area_output
-        if food_output:
+        if food_output and fsm.context.food == None:
             if not fsm.context.restaurants_matches or _confirm_term(fsm, "food", food_output):
                 fsm.context.food_known = True
                 fsm.context.food = food_output
-        if pricerange_output:
+        if pricerange_output and fsm.context.pricerange == None:
             if not fsm.context.restaurants_matches or _confirm_term(fsm, "pricerange", pricerange_output):
                 fsm.context.pricerange_known = True
                 fsm.context.pricerange = pricerange_output
@@ -264,6 +264,13 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
         return "inform"
     
     def ask_conformation_action(fsm: FSM): 
+        fsm.context.area_known = False
+        fsm.context.food_known = False
+        fsm.context.pricerange_known = False
+        fsm.context.area = None
+        fsm.context.food = None
+        fsm.context.pricerange = None
+        fsm.context.incorrect_part = None
         output_system_response(fsm, "Is this suggestion okay for you?")
         text_input = get_user_input(fsm)
         action = fsm.ML_model.predict([text_input])[0]
