@@ -148,9 +148,6 @@ def start_cli(models, restaurant_manager, restaurant_searcher):
                     tts_choice = input("Enable TTS (Text-to-Speech)? (y/n): ").strip().lower()
                     use_tts = tts_choice == 'y'
 
-                    # Ask user if they want to confirm extracted preference matches
-                    cf_choice = input("Confirm preference matches? (y/n): ").strip().lower()
-                    confirm_matches = cf_choice == 'y'
 
                     # Ask user if they want to have a max number of recommendations
                     max_choice = input("Limit number of recommendations? (y/n): ").strip().lower()
@@ -172,7 +169,7 @@ def start_cli(models, restaurant_manager, restaurant_searcher):
                     use_delay = delay_choice == 'y'
                                     
 
-                    start_dialogue_system(chosen_model, restaurant_manager, restaurant_searcher, use_asr, use_tts, confirm_matches, use_delay)
+                    start_dialogue_system(chosen_model, restaurant_manager, restaurant_searcher, use_asr, use_tts, use_delay)
                 else:
                     print("Invalid choice. Returning to main menu.")
             except (ValueError, IndexError):
