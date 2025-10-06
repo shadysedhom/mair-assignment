@@ -43,8 +43,7 @@ This will run the full pipeline, including training, testing and user interactio
 - **`utils/csv_reader.py`**: Utility class for reading CSV files, used by the restaurant reader component.
 - **`utils/stats_retriever.py`**: Provides functionality for collecting and displaying system performance statistics and results comparison.
 
-- **`StateDiagram.jpg.py`**: Shows a diagram of all the states and transitions the system has.
-- **`StateDiagramV2.jpg.py`**: This is the improved version of statediagram that shows all the states and transitions the system has.
+- **`StateDiagram.png`**: Shows a diagram of all the states and transitions the system has.
 
 
 ## Contributions
@@ -52,8 +51,8 @@ This will run the full pipeline, including training, testing and user interactio
 | Team Member | Tasks                                                                                                                                       |
 |-------------|---------------------------------------------------------------------------------------------------------------------------------------------|
 | Bram        | Classifier 1 (Logistic Regression) + State Diagram + States & Transitions + Updated ReadMe for Part 1b    + working on features + Report: Configurability + Conclusion + Final check                                  |
-| Lenny       | Classifier 2 (Naive Multinomial Bayes) + States & Transitions + Introduction + abstract + Feedback for Transitions and states(redesigning transitions&states diagram) + title 
-| Shady       | Data Preprocessing + Classifier 3 (SVM) + CLI 1A/1B/1C + Feedback 1A (Refactoring) + Restaurant Lookup Function + State Debugging & Edge Cases + Feedback 1B (Refactoring) + ASR & TTS |
+| Lenny       | Classifier 2 (Naive Multinomial Bayes) + States & Transitions + Introduction + abstract + Feedback for Transitions and states(redesigning transitions&states diagram) + title |
+| Shady       | Data Preprocessing + Classifier 3 (SVM) + CLI 1A/1B/1C + Feedback 1A (Refactoring) + Restaurant Lookup Function + State Debugging & Edge Cases + Feedback 1B (Refactoring) + ASR & TTS + Report: Data + ML |
 | Dirk-Jan    | Baseline Systems + Classifier Decision Tree + Evaluation + State Diagram + States & Transitions + keyword matching + Reasoner               |
 
 
