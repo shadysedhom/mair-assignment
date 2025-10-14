@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 
 from dialogue_system import keyword_searcher
 from dialogue_system.restaurant_manager import RestaurantManager
+from utils.dialogue_logger import DialogueLogger
 
 
 # --- Context ---
@@ -81,6 +82,7 @@ class FSM:
         self.is_active = True
         self.use_asr = use_asr
         self.use_tts = use_tts
+        self.logger = DialogueLogger()
 
     def step(self):
 

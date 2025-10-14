@@ -41,7 +41,9 @@ VOICE = "en-US-AvaNeural"
 def get_user_input(fsm: FSM) -> str:
     """Gets user input from microphone if ASR is enabled, otherwise from text prompt."""
     if not fsm.use_asr:
-        return input("You: ")
+        text_input = input("You: ")
+        fsm.logger.log_turn("User", text_input)
+        return text_input
 
     temp_wav_file = os.path.join(AUDIO_DIR, f"temp_recording_{time.time()}.wav")
     p = pyaudio.PyAudio()
@@ -140,6 +142,7 @@ async def _generate_and_play_tts(text: str):
 def output_system_response(fsm: FSM, text: str):
     """Outputs the system's response as text and optionally as speech."""
     print(f"System: {text}")
+    fsm.logger.log_turn("System", text)
     if fsm.use_tts:
         try:
             asyncio.run(_generate_and_play_tts(text))

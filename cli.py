@@ -25,6 +25,8 @@ def start_dialogue_system(model, restaurant_manager, restaurant_searcher, use_as
     while fsm.is_active:
         fsm.step()
     
+    # Save the transcript at the end of the dialogue
+    fsm.logger.save()
     print("\nDialogue ended. Returning to main menu...")
 
 
