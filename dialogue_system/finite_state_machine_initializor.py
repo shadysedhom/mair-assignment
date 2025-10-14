@@ -15,15 +15,14 @@ from playsound import playsound
 from dialogue_system.finite_state_machine import FSM, State, Transition, Context, Inform, Affirm, Deny, Hello, Null,Negate
 from dialogue_system import keyword_searcher
 from dialogue_system.restaurant_manager import RestaurantManager
-from dialogue_system.reasoner import reason_about_restaurants, apply_inference
+from dialogue_system.reasoner import reason_about_restaurants
 from dialogue_system.types import SearchThemes
+from dialogue_system.response_templates import HUMANLIKE_TEMPLATES, SYSTEM_TEMPLATES
 
 # --- ASR and TTS Helper Functions ---
 
-# Initialize colorama
 init(autoreset=True)
 
-# ASR settings
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
@@ -32,17 +31,14 @@ SILENCE_THRESHOLD = 300
 SILENT_CHUNKS = 2 * (RATE // CHUNK)
 AUDIO_DIR = "audio"
 
-# Load ASR model once
 asr_model = WhisperModel("base", device="cpu", compute_type="int8")
 
-# TTS settings
 VOICE = "en-US-AvaNeural"
 
 def get_user_input(fsm: FSM) -> str:
-    """Gets user input from microphone if ASR is enabled, otherwise from text prompt."""
     if not fsm.use_asr:
         text_input = input("You: ")
-        fsm.logger.log_turn("User", text_input)
+        fsm.logger.log_turn("User", text_input, fsm.current_state.name)
         return text_input
 
     temp_wav_file = os.path.join(AUDIO_DIR, f"temp_recording_{time.time()}.wav")
@@ -55,13 +51,10 @@ def get_user_input(fsm: FSM) -> str:
     silent_chunks = 0
     is_speaking = False
     
-    # Continuously record audio from the microphone until silence is detected.
     while True:
         try:
             data = stream.read(CHUNK)
             frames.append(data)
-
-            # A simple energy-based silence detection.
             rms = audioop.rms(data, 2)
             
             if rms > SILENCE_THRESHOLD:
@@ -81,43 +74,35 @@ def get_user_input(fsm: FSM) -> str:
     stream.close()
     p.terminate()
 
-    # Save the recorded audio frames to a temporary WAV file.
     with wave.open(temp_wav_file, 'wb') as wf:
         wf.setnchannels(CHANNELS)
         wf.setsampwidth(p.get_sample_size(FORMAT))
         wf.setframerate(RATE)
         wf.writeframes(b''.join(frames))
 
-    # Transcribe the audio file using the pre-loaded Whisper model.
     segments, _ = asr_model.transcribe(temp_wav_file, beam_size=5)
-    os.remove(temp_wav_file) # Clean up the temporary file
+    os.remove(temp_wav_file)
     transcribed_text = " ".join([segment.text for segment in segments]).strip()
     
+    fsm.logger.log_turn("User", transcribed_text, fsm.current_state.name)
     print(f"You: {transcribed_text}")
     return transcribed_text
 
 async def _generate_and_play_tts(text: str):
-    """Generates TTS audio to a unique temp file and plays it with a progress bar."""
-    # Generate a unique temporary filename to avoid file lock issues.
     temp_audio_file = os.path.join(AUDIO_DIR, f"temp_tts_{time.time()}.mp3")
-
-    # Generate the speech audio from the text using edge-tts.
     communicate = edge_tts.Communicate(text, VOICE)
     with open(temp_audio_file, "wb") as file:
         async for chunk in communicate.stream():
             if chunk["type"] == "audio":
                 file.write(chunk["data"])
 
-    # Estimate the audio duration (using WPM as a proxy), to make the progress bar accurate.
     words_per_minute = 150
     words = len(text.split())
     duration = (words / words_per_minute) * 60
 
-    # Run audio playback in a separate thread to prevent blocking the progress bar.
     playback_thread = threading.Thread(target=playsound, args=(temp_audio_file,))
     playback_thread.start()
 
-    # Show the TTS progress bar
     with Progress(
         "[progress.description]{task.description}",
         BarColumn(),
@@ -133,16 +118,22 @@ async def _generate_and_play_tts(text: str):
         progress.update(task, completed=duration)
 
     playback_thread.join()
-
-    # Clean up the temporary audio file after playback.
     os.remove(temp_audio_file)
-    # Add a newline for CLI readability
     print()
 
-def output_system_response(fsm: FSM, text: str):
-    """Outputs the system's response as text and optionally as speech."""
+def output_system_response(fsm: FSM, template_key: str, **kwargs):
+    if fsm.response_mode == "humanlike":
+        template = HUMANLIKE_TEMPLATES.get(template_key, "Error: Template not found.")
+    else:
+        template = SYSTEM_TEMPLATES.get(template_key, "Error: Template not found.")
+
+    if callable(template):
+        text = template()
+    else:
+        text = template.format(**kwargs)
+
     print(f"System: {text}")
-    fsm.logger.log_turn("System", text)
+    fsm.logger.log_turn("System", text, fsm.current_state.name)
     if fsm.use_tts:
         try:
             asyncio.run(_generate_and_play_tts(text))
@@ -151,24 +142,17 @@ def output_system_response(fsm: FSM, text: str):
 
 # --- FSM Initialization and Actions ---
 
-food_preference_hints = [
-    "Some popular options are 'italian', 'chinese', or 'indian'.",
-    "For example, you could try 'french', 'thai', or 'vietnamese'.",
-    "You could also choose something like 'british', 'seafood', or 'gastropub'."
-]
-
-def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_manager: RestaurantManager, use_asr: bool, use_tts: bool, confirm_matches: bool = False) -> FSM:
+def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_manager: RestaurantManager, use_asr: bool, use_tts: bool, confirm_matches: bool = False, response_mode: str = "humanlike") -> FSM:
 
     def _tokenize(text: str):
         return [t for t in ''.join(ch if ch.isalnum() or ch.isspace() else ' ' for ch in text.lower()).split() if t]
 
     def _confirm_term(fsm: FSM, attribute: str, term: str) -> bool:
-        print(f"System: Did you mean '{term}' for {attribute}? (y/n)")
+        output_system_response(fsm, "confirm_term", term=term, attribute=attribute)
         resp = get_user_input(fsm).strip().lower()
         return resp in ["y", "yes"]
 
     def _process_preferences(fsm: FSM, text_input: str):
-        """Helper to extract all preferences from a user utterance and update the context."""
         area_output = fsm.keyword_searcher.search(text_input, SearchThemes.area)
         food_output = fsm.keyword_searcher.search(text_input, SearchThemes.food)
         pricerange_output = fsm.keyword_searcher.search(text_input, SearchThemes.pricerange)
@@ -189,7 +173,6 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
         return area_output, food_output, pricerange_output
     
     def _extra_process_preferences(fsm: FSM, text_input: str):
-        """Helper to extract all extra preferences from a user utterance and update the context."""
         touristic_output = fsm.keyword_searcher.search(text_input, SearchThemes.touristic)
         assigned_seats_output = fsm.keyword_searcher.search(text_input, SearchThemes.assigned_seats)
         children_output = fsm.keyword_searcher.search(text_input, SearchThemes.children)
@@ -215,65 +198,64 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
         return is_touristic, is_assigned_seats, has_children, is_romantic
 
     def welcome_action(fsm: FSM):
-        output_system_response(fsm, "Welcome! Let's start. What kind of restaurant are you looking for? Please inform me about your preferences (area, food, price range).")
+        output_system_response(fsm, "welcome")
         text = get_user_input(fsm)
         _process_preferences(fsm, text)
         return fsm.ML_model.predict([text])[0]
 
     def ask_area_action(fsm: FSM):
         valid_options = fsm.restaurant_manager.get_labels('area')
-        output_system_response(fsm, "Which area would you like?")
-        text_input = get_user_input(fsm)
-        area_found, food_found, pricerange_found = _process_preferences(fsm, text_input)
-
-        if not area_found:
-            hint_options = ', '.join([opt for opt in valid_options if opt])
-            output_system_response(fsm, f"I'm sorry, I don't recognize that area. Please choose from: {hint_options}.")
+        output_system_response(fsm, "ask_area")
+        while True:
+            text_input = get_user_input(fsm)
+            area_found, _, _ = _process_preferences(fsm, text_input)
+            if area_found:
+                break
+            else:
+                output_system_response(fsm, "ask_area_invalid", hint_options=', '.join([opt for opt in valid_options if opt]))
 
         return fsm.ML_model.predict([text_input])[0]
 
     def ask_food_action(fsm: FSM): 
-        output_system_response(fsm, "What type of food do you prefer?")
+        output_system_response(fsm, "ask_food")
         text_input = get_user_input(fsm)
-        area_found, food_found, pricerange_found = _process_preferences(fsm, text_input)
+        _, food_found, _ = _process_preferences(fsm, text_input)
 
         if not food_found:
-            output_system_response(fsm, random.choice(food_preference_hints))
+            output_system_response(fsm, "ask_food_invalid")
 
         return fsm.ML_model.predict([text_input])[0]
 
     def ask_pricerange_action(fsm: FSM):
         valid_options = fsm.restaurant_manager.get_labels('pricerange')
-        output_system_response(fsm, "What price range are you looking for?")
+        output_system_response(fsm, "ask_pricerange")
         text_input = get_user_input(fsm)
-        area_found, food_found, pricerange_found = _process_preferences(fsm, text_input)
+        _, _, pricerange_found = _process_preferences(fsm, text_input)
 
         if not pricerange_found:
-            hint_options = ', '.join([opt for opt in valid_options if opt])
-            output_system_response(fsm, f"I'm sorry, I don't recognize that price range. Please choose from: {hint_options}.")
+            output_system_response(fsm, "ask_pricerange_invalid", hint_options=', '.join([opt for opt in valid_options if opt]))
 
         return fsm.ML_model.predict([text_input])[0]
 
     def suggest_restaurant_action(fsm: FSM):
-
         if not fsm.context.restaurants_matches:
-            output_system_response(fsm, "I'm sorry, there are no restaurants that match your request.")
+            output_system_response(fsm, "no_results")
             return "none" 
 
         suggestion = random.choice(fsm.context.restaurants_matches)
         fsm.context.restaurants_matches = [r for r in fsm.context.restaurants_matches if r != suggestion]
 
-        output_system_response(fsm, f"{suggestion.name} is a nice place in the {suggestion.area} part of town serving {suggestion.food} food in the {suggestion.pricerange} price range.")
+        output_system_response(fsm, "suggest_restaurant", name=suggestion.name, area=suggestion.area, food=suggestion.food, pricerange=suggestion.pricerange)
         return "inform"
     
     def ask_conformation_action(fsm: FSM): 
-        output_system_response(fsm, "Is this suggestion okay for you?")
+        output_system_response(fsm, "ask_conformation")
         text_input = get_user_input(fsm)
         action = fsm.ML_model.predict([text_input])[0]
         return action
     
     def ask_part_incorrect_action(fsm: FSM): 
-        output_system_response(fsm, "Which part of the suggestion was incorrect? (Area, Food, Price Range, All)")
+        output_system_response(fsm, "ask_part_incorrect")
         text_input = get_user_input(fsm)
         action = fsm.ML_model.predict([text_input])[0]
 
@@ -296,13 +278,13 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
         fsm.context.pricerange = None
         fsm.context.incorrect_part = None
     
-        output_system_response(fsm, "Please express your preferences again (area, food, price range).")
+        output_system_response(fsm, "ask_preference_again")
         text_input = get_user_input(fsm)
-        area_found, food_found, pricerange_found = _process_preferences(fsm, text_input)
+        _process_preferences(fsm, text_input)
         return fsm.ML_model.predict([text_input])[0]
 
     def bye_action(fsm: FSM): 
-        output_system_response(fsm, "Goodbye!")
+        output_system_response(fsm, "bye")
         fsm.is_active = False
         return "bye"
     
@@ -316,17 +298,17 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
         fsm.context.restaurants_matches = matches
 
         if not matches:
-            output_system_response(fsm, "I'm sorry, there are no restaurants that match your request.")
+            output_system_response(fsm, "no_results")
             return "none" 
         else:
-            output_system_response(fsm, f"There are {len(matches)} restaurants that match your preferences:")
+            output_system_response(fsm, "show_possible_restaurants_count", count=len(matches))
             for r in matches:
-                output_system_response(fsm, f"- {r.name}: {r.food} (food), {r.pricerange} (price range), {r.area} (area), {r.food_quality} (food quality), {r.crowdedness} (crowdedness), {r.length_of_stay} (length of stay)")
+                output_system_response(fsm, "show_restaurant_details", name=r.name, food=r.food, pricerange=r.pricerange, area=r.area)
 
         return "inform"     
     
     def ask_extra_preference_action(fsm: FSM):
-        output_system_response(fsm, "Would you like to specify any extra preferences to narrow down the options? (touristic, assigned seats, romantic, children)")
+        output_system_response(fsm, "ask_extra_preference")
         text_input = get_user_input(fsm)
 
         is_touristic, is_assigned_seats, has_children, is_romantic = _extra_process_preferences(fsm, text_input)
@@ -406,7 +388,7 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
     Transition(ask_preference, lambda a, c: len(c.restaurants_matches) == 0)
     )
     show_possible_restaurants.add_transition(
-        Transition(suggest_restaurant, lambda a, c: len(c.restaurants_matches) == 1)
+        Transition(ask_conformation, lambda a, c: len(c.restaurants_matches) == 1)
     )
     show_possible_restaurants.add_transition(
         Transition(ask_extra_preference, lambda a, c: len(c.restaurants_matches) > 1)
@@ -419,8 +401,7 @@ def initialize_fsm(keyword_searcher: keyword_searcher, ML_model, restaurant_mana
     suggest_restaurant.add_transition(Transition(ask_preference, lambda a, c: isinstance(a, Null)))
 
     ctx = Context()
-    fsm = FSM(welcome, ctx, keyword_searcher, ML_model, restaurant_manager, use_asr=use_asr, use_tts=use_tts)
-    # Feature toggle: confirm extracted preference matches (for non-direct matches)
+    fsm = FSM(welcome, ctx, keyword_searcher, ML_model, restaurant_manager, use_asr=use_asr, use_tts=use_tts, response_mode=response_mode)
     fsm.confirm_matches = bool(confirm_matches)
 
     return fsm

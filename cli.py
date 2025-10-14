@@ -13,14 +13,14 @@ system_utterances = {
 
 from dialogue_system.finite_state_machine_initializor import initialize_fsm
 
-def start_dialogue_system(model, restaurant_manager, restaurant_searcher, use_asr=False, use_tts=False, confirm_matches=False):
+def start_dialogue_system(model, restaurant_manager, restaurant_searcher, use_asr=False, use_tts=False, confirm_matches=False, response_mode="humanlike"):
     """
     Launches the interactive restaurant dialogue system.
     """
     print("\n" + "-"*100)
     print("Welcome to the Restaurant Dialogue System!".center(100) + "\n" + "-"*100)
     
-    fsm = initialize_fsm(restaurant_searcher, model, restaurant_manager, use_asr, use_tts, confirm_matches)
+    fsm = initialize_fsm(restaurant_searcher, model, restaurant_manager, use_asr, use_tts, confirm_matches, response_mode)
     
     while fsm.is_active:
         fsm.step()
@@ -149,11 +149,16 @@ def start_cli(models, restaurant_manager, restaurant_searcher):
                     tts_choice = input("Enable TTS (Text-to-Speech)? (y/n): ").strip().lower()
                     use_tts = tts_choice == 'y'
 
-                    # Ask user if they want to confirm extracted preference matches
-                    cf_choice = input("Confirm preference matches? (y/n): ").strip().lower()
-                    confirm_matches = cf_choice == 'y'
+                    # Ask user if they want to confirm preference matches
+                    confirm_choice = input("Confirm preference matches? (y/n): ").strip().lower()
+                    confirm_matches = confirm_choice == 'y'
 
-                    start_dialogue_system(chosen_model, restaurant_manager, restaurant_searcher, use_asr, use_tts, confirm_matches)
+                    # Ask user for response mode
+                    mode_choice = input("Select response mode (h)umanlike / (s)ystem: ").strip().lower()
+                    response_mode = "humanlike" if mode_choice == 'h' else "system"
+                    print(f"(Using '{response_mode}' response mode)")
+
+                    start_dialogue_system(chosen_model, restaurant_manager, restaurant_searcher, use_asr, use_tts, confirm_matches, response_mode)
                 else:
                     print("Invalid choice. Returning to main menu.")
             except (ValueError, IndexError):

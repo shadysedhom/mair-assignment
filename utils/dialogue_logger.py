@@ -11,8 +11,8 @@ class DialogueLogger:
         self.user_turns = 0
         self.start_time = time.time()
 
-    def log_turn(self, speaker, utterance):
-        """Logs a single turn of the dialogue."""
+    def log_turn(self, speaker, utterance, state):
+        """Logs a single turn of the dialogue, including the state."""
         timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         self.turn_count += 1
         if speaker == "System":
@@ -23,6 +23,7 @@ class DialogueLogger:
         log_entry = (
             f"Timestamp: {timestamp}\n"
             f"Turn: {self.turn_count}\n"
+            f"State: {state}\n"
             f"Speaker: {speaker}\n"
             f"Utterance: {utterance}\n"
         )

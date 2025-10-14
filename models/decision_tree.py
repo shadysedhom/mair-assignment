@@ -52,7 +52,7 @@ def run_dt_optimization(X_train, y_train, X_val, y_val, X_test, y_test, label):
                 'clf__criterion': ['gini', 'entropy']
             }
 
-            grid_search = GridSearchCV(pipeline, param_grid, cv=KFold(5), scoring='accuracy', n_jobs=-1) # Use all available CPU cores
+            grid_search = GridSearchCV(pipeline, param_grid, cv=KFold(5), scoring='accuracy', n_jobs=1) # Use 1 core to conserve memory
             grid_search.fit(X_combined, y_combined)
 
             joblib.dump(grid_search, study_filepath)

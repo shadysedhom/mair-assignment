@@ -73,7 +73,7 @@ class State:
         return [t for t in self.transitions if t.is_triggered(action, context)]
 
 class FSM:
-    def __init__(self, initial_state: State, context: Context, keyword_searcher: keyword_searcher, ML_model, restaurant_manager: RestaurantManager, use_asr: bool = False, use_tts: bool = False) -> None:
+    def __init__(self, initial_state: State, context: Context, keyword_searcher: keyword_searcher, ML_model, restaurant_manager: RestaurantManager, use_asr: bool = False, use_tts: bool = False, response_mode: str = "humanlike") -> None:
         self.current_state = initial_state
         self.context = context
         self.keyword_searcher = keyword_searcher
@@ -82,6 +82,7 @@ class FSM:
         self.is_active = True
         self.use_asr = use_asr
         self.use_tts = use_tts
+        self.response_mode = response_mode
         self.logger = DialogueLogger()
 
     def step(self):
@@ -90,7 +91,7 @@ class FSM:
 
         action = None
 
-        print(f"[FSM] Current state: {self.current_state.name}, Action: {string_action}")
+        # print(f"[FSM] Current state: {self.current_state.name}, Action: {string_action}")
 
         action = self.set_new_action(string_action)
 
@@ -98,8 +99,8 @@ class FSM:
         candidates = self.current_state.possible_transitions(action, self.context)
         if candidates:
             self.current_state = candidates[0].target
-        else:
-            print("[FSM] No valid transition, staying in same state.")
+        # else:
+        #     print("[FSM] No valid transition, staying in same state.")
 
     def set_new_action(self, string_action):
         action = Null() # Default action
